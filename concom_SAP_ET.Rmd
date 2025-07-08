@@ -1,0 +1,392 @@
+---
+title: "Concomitant vaccination of Meningococcal B with infant immunisation schedules"
+subtitle: "Analysis Plan"
+author: "Michael Dymock"
+date: "`r Sys.Date()`"
+output: 
+ bookdown::pdf_document2:
+   toc: no
+   fig_align: center
+   fig_height: 4
+   fig_width: 6
+---
+
+\tableofcontents
+\addcontentsline{toc}{section}{\listfigurename}
+
+\clearpage
+
+\listoffigures
+
+\clearpage
+
+```{r setup, include = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+ 	message = FALSE,
+  warning = FALSE,
+ 	fig.pos = "!htbp",
+  out.extra = ""
+)
+
+## read in the libraries
+
+library(cmdstanr)
+library(posterior)
+library(ggplot2)
+
+## set the seed
+
+set.seed(12856421)
+
+## colourblind friendly palette
+
+colours <- c("#88CCEE", "#CC6677", "#DDCC77")
+```
+
+# Outline
+
+This document details the analysis plan for the work investigating the reactogenicity of the Meningococcal B (MenB) vaccine given either concomitantly or separately to infant immunisation schedules on the National Immunisation Program (NIP). We consider three modelling scenarios. The following sections detail the notation and modelling approaches. Each modelling approach is supplemented with an example. To simplify the examples we assume there are no covariate effects on the outcome and that there is only one scheduled timepoint.
+
+# Notation
+
+Suppose that there are $N$ (eligible) responders to the AusVaxSafety survey soliciting reactogenicity information within three days of vaccination for infants who received a MenB vaccine and their NIP scheduled vaccines either concomitantly or separately. We denote these individual responders with $i \in \{1,2,\ldots,N\}$.
+
+We denote the vaccination *strategy* for responder $i$ with $s_i \in \{\text{Concomitant} = 1, \text{Separate} = 2\}$ representing whether the vaccinations were delivered concomitantly or separately. Responder $i$ has one survey response if $s_i = \text{Concomitant}$ and two survey responses if $s_i = \text{Separate}$. The scheduled NIP timepoints for responder $i$ are denoted $t_i \in \{\text{2 months} = 1, \text{4 months} = 2, \text{6 months} = 3, \text{12 months} = 4\}$. Covariates sex, Indigenous status and comorbidity for responder $i$ are denoted $w_i \in \{\text{Male} = 0, \text{Female} = 1\}$, $x_i \in \{\text{Non-Indigenous} = 0, \text{Indigenous} = 1\}$ and $z_i \in \{\text{No} = 0, \text{Yes} = 1\}$, respectively.
+
+The event of interest (e.g., any adverse event, specific adverse events, medically attended adverse events) is defined separately for each scenario in the following section.
+
+\clearpage
+
+# Modelling
+
+## Scenario A
+
+In Scenario A, the objective of the model is to estimate the probability of **at least one** event reported by responders receiving each strategy. As an event may only occur once per responder, i.e., either no events or at least one event, we denote the event for responder $i$ with $y_i \in \{\text{Zero events} = 0, \text{At least one event} = 1\}$. The model is:
+
+\begin{align*}
+y_i &\sim \text{Bernoulli}(p_i) \\
+\text{logit}(p_i) &= \mu_{s_i,t_i} + w_i \times \beta + x_i \times \gamma + z_i \times \delta \\
+\mu_{s_i,t_i} &\sim \text{N}(a,b) \\ 
+\beta, \gamma, \delta &\sim \text{N}(0,1)
+\end{align*}
+
+Here, $p_i$ is the probability of responder $i$ reporting at least one event and $\mu_{s_i,t_i}$ is the log odds of a responder receiving strategy $s_i$ at scheduled timepoint $t_i$ reporting at least one event. The log odds ratios for sex, Indigenous status and comorbidity are represented by $\beta$, $\gamma$ and $\delta$, respectively. The hyperparameters $a$ and $b$ would be chosen so that the prior distributions are weakly informative and will depend on the specific outcome. For each scheduled timepoint $t_i$, the difference in event probabilities can be calculated with $\text{logit}^{-1}(\mu_{\text{Concomitant},t_i}) - \text{logit}^{-1}(\mu_{\text{Separate},t_i})$.
+
+\clearpage
+
+The model is implemented in STAN as follows:
+
+\small
+```{r, echo = FALSE, comment = ""}
+#writeLines(readLines("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_A.stan"))
+writeLines(readLines("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan"))
+```
+\normalsize
+
+\clearpage
+
+### Example
+
+Setup the data and model parameters:
+
+```{r}
+N_A <- 1000
+N_strat_A <- 2
+N_sched_A <- 1
+s_A <- sample(1:N_strat_A, size = N_A, replace = TRUE)
+t_A <- rep(1:N_sched_A, N_A/N_sched_A)
+w_A <- sample(c(0,1), size = N_A, replace = TRUE)
+x_A <- sample(c(0,1), size = N_A, replace = TRUE)
+z_A <- sample(c(0,1), size = N_A, replace = TRUE)
+
+mu_A <- matrix(qlogis(0.3), nrow = N_strat_A, ncol = N_sched_A)
+beta_A <- gamma_A <- delta_A <- 0
+p_A <- sapply(1:N_A, function(i) plogis(mu_A[s_A[i], t_A[i]] + 
+                                        w_A[i]*beta_A + 
+                                        x_A[i]*gamma_A + 
+                                        z_A[i]*delta_A))
+y_A <- rbinom(N_A, 1, p_A)
+a <- qlogis(0.3)
+b <- 2
+
+dat_A <- list(N = N_A,
+              N_strat = N_strat_A,
+              N_sched = N_sched_A,
+              s = s_A,
+              t = t_A,
+              w = w_A,
+              x = x_A,
+              z = z_A,
+              y = y_A,
+              a = a,
+              b = b)
+```
+
+\clearpage
+
+Fit the model, extract the posterior distributions and visualise:
+
+```{r, echo = FALSE}
+#model_A <- cmdstan_model("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_A.stan")
+model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")
+drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)})
+draws_A <- as_draws_matrix(fit_A$draws(c("mu")))
+dat_vis_A <- data.frame(x = plogis(as.vector(draws_A)),
+                        Parameter = rep(c("Concomitant", "Separate"), each = 8000))
+```
+
+```{r, echo = FALSE, fig.cap = "Posterior distributions for Scenario A parameters."}
+ggplot(dat_vis_A, aes(x = x, colour = Parameter)) +
+  geom_density() +
+  scale_colour_manual(values = colours)
+```
+
+The means and 95\% credible intervals for the event probabilities for each strategy are: 
+
+```{r, echo = FALSE}
+summary_fun_A <- function(strat, dat){
+  mn <- format(round(mean(dat[dat$Parameter == strat,]$x), 2), nsmall = 2)
+  cr <- format(round(quantile(dat[dat$Parameter == strat,]$x, c(0.025, 0.975)), 2), nsmall = 2)
+  paste0(strat, " strategy: ", mn, " (", cr[1], ", ", cr[2], ")")
+}
+
+summary_fun_A("Concomitant", dat_vis_A)
+summary_fun_A("Separate", dat_vis_A)
+```
+
+\clearpage
+
+## Scenario B
+
+In Scenario B, the objective of the model is to estimate the probability of **an** event reported by responders on each vaccine occasion for each strategy. Here an event may still only occur at most once per responder receiving the concomitant strategy as there is only one vaccine occasion. However, for responders receiving the separate vaccination strategy there are two vaccine occasions and therefore at most two events. We introduce the notation $v_i \in \{\text{NIP only}, \text{MenB only}\}$ to denote vaccine occasion for responder $i$ and $y_{i,v_i} \in \{\text{No} = 0, \text{Yes} = 1\}$ to denote and event reported by responder $i$ for vaccine occasion $v_i$. Note that $v_i$ and $y_{i,v_i}$ are only defined for $s_i = \text{Separate}$. Where $s_i = \text{Concomitant}$ we use the same model as Scenario A. Where $s_i = \text{Separate}$ we use the model below:
+
+\begin{align*}
+y_{i,v_i} &\sim \text{Bernoulli}(p_{i,v_i}) \\
+\text{logit}(p_{i,v_i}) &= \alpha_i + \mu_{\text{Separate},t_i,v_i} + w_i \times \beta + x_i \times \gamma + z_i \times \delta \\
+\mu_{s_i,t_i,v_i} &\sim \text{N}(a,b) \\ 
+\alpha_i, \beta, \gamma, \delta &\sim \text{N}(0,1)
+\end{align*}
+
+Here, $p_{i,v_i}$ is the probability of responder $i$ reporting at an event for vaccine occasion $v_i$ and $\mu_{\text{Separate},t_i,v_i}$ is the log odds of a responder reporting an event for vaccine occasion $v_i$ at scheduled timepoint $t_i$. The responder level intercept term is $\alpha_i$ and the log odds ratios for sex, Indigenous status and comorbidity are represented by $\beta$, $\gamma$ and $\delta$, respectively. The hyperparameters $a$ and $b$ would be chosen so that the prior distributions are weakly informative and will depend on the specific outcome. For each vaccine occasion $v_i$ at each scheduled timepoint $t_i$, the difference in event probabilities can be calculated with $\text{logit}^{-1}(\mu_{\text{Concomitant},t_i}) - \text{logit}^{-1}(\mu_{\text{Separate},t_i,v_i})$.
+
+\clearpage
+
+The model is implemented in STAN as follows:
+
+\tiny
+```{r, echo = FALSE, comment = ""}
+writeLines(readLines("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_B.stan"))
+```
+\normalsize
+
+\clearpage
+
+### Example 
+
+Setup the data and model parameters:
+
+```{r}
+N_con_B <- 500
+N_sep_B <- 500
+N_sched_B <- 1
+N_vax_B <- 2
+t_con_B <- rep(1:N_sched_B, N_con_B/N_sched_B)
+t_sep_B <- rep(1:N_sched_B, N_sep_B/N_sched_B)
+w_con_B <- sample(c(0,1), size = N_con_B, replace = TRUE)
+w_sep_B <- sample(c(0,1), size = N_sep_B, replace = TRUE)
+x_con_B <- sample(c(0,1), size = N_con_B, replace = TRUE)
+x_sep_B <- sample(c(0,1), size = N_sep_B, replace = TRUE)
+z_con_B <- sample(c(0,1), size = N_con_B, replace = TRUE)
+z_sep_B <- sample(c(0,1), size = N_sep_B, replace = TRUE)
+v_B <- rep(1:N_vax_B, N_sep_B/N_vax_B)
+
+alpha_B <- rep(0, N_sep_B)
+mu_con_B <- rep(qlogis(0.3), N_sched_B)
+mu_sep_B <- matrix(qlogis(0.3), nrow = N_sched_B, ncol = N_vax_B)
+beta_B <- gamma_B <- delta_B <- 0
+p_con_B <- sapply(1:N_con_B, function(i) plogis(mu_con_B[t_con_B[i]] + 
+                                                w_con_B[i]*beta_B + 
+                                                x_con_B[i]*gamma_B + 
+                                                z_con_B[i]*delta_B))
+y_con_B <- rbinom(N_con_B, 1, p_con_B)
+p_sep_B <- t(sapply(1:N_sep_B, function(i) 
+                sapply(1:N_vax_B, function(v) 
+                  plogis(mu_sep_B[t_con_B[i], v] + 
+                         w_sep_B[i]*beta_B + 
+                         x_sep_B[i]*gamma_B + 
+                         z_sep_B[i]*delta_B))))
+y_sep_B <- sapply(1:N_vax_B, function(v) rbinom(N_sep_B, 1, p_sep_B[,v]))
+a <- qlogis(0.3)
+b <- 2
+
+dat_B <- list(N_con = N_con_B,
+              N_sep = N_sep_B,
+              N_sched = N_sched_B,
+              N_vax = N_vax_B,
+              t_con = t_con_B,
+              t_sep = t_sep_B,
+              w_con = w_con_B,
+              w_sep = w_sep_B,
+              x_con = x_con_B,
+              x_sep = x_sep_B,
+              z_con = z_con_B,
+              z_sep = z_sep_B,
+              v = v_B,
+              y_con = y_con_B,
+              y_sep = y_sep_B,
+              a = a,
+              b = b)
+```
+
+\clearpage
+
+Fit the model, extract the posterior distributions and visualise:
+
+```{r, echo = FALSE}
+model_B <- cmdstan_model("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_B.stan")
+drp <- capture.output({fit_B <- model_B$sample(dat_B, chains = 8, parallel_chains = 8)})
+draws_B <- as_draws_matrix(fit_B$draws(c("mu_con", "mu_sep")))
+dat_vis_B <- data.frame(x = plogis(as.vector(draws_B)),
+                        Parameter = rep(c("Concomitant", "Separate NIP", "Separate MenB"), each = 8000))
+```
+
+```{r, echo = FALSE, fig.cap = "Posterior distributions for Scenario B parameters."}
+ggplot(dat_vis_B, aes(x = x, colour = Parameter)) +
+  geom_density() +
+  scale_colour_manual(values = colours)
+```
+
+The means and 95\% credible intervals for the event probabilities for each strategy are: 
+
+```{r, echo = FALSE}
+summary_fun_B <- function(strat, dat){
+  mn <- format(round(mean(dat[dat$Parameter == strat,]$x), 2), nsmall = 2)
+  cr <- format(round(quantile(dat[dat$Parameter == strat,]$x, c(0.025, 0.975)), 2), nsmall = 2)
+  paste0(strat, " strategy: ", mn, " (", cr[1], ", ", cr[2], ")")
+}
+
+summary_fun_B("Concomitant", dat_vis_B)
+summary_fun_B("Separate NIP", dat_vis_B)
+summary_fun_B("Separate MenB", dat_vis_B)
+```
+
+## Scenario C
+
+In Scenario C, the objective of the model is to estimate the probability of **zero, one or two** events reported by responders receiving each strategy. We denote the event for responder $i$ with $y_i \in \{\text{Zero} = 0, \text{One} = 1, \text{Two} = 2\}$. Here an event may still only occur at most once for a responder receiving the concomitant strategy and at most twice for a responder receiving the separate strategy. The model is:
+
+\begin{align*}
+y_i &\sim \text{Categorical}(p_{i0}, p_{i1}, p_{i2}) \\
+p_{ik} &= \frac{e^{\eta_{ik}}}{\Sigma_{j \in \{0,1,2\}}e^{\eta_{ij}}} \\
+\eta_{i0} &= 0 \\
+\eta_{i1} &= \mu_{s_i,t_i,1} + w_i \times \beta_1 + x_i \times \gamma_1 + z_i \times \delta_1 \\
+\eta_{i2} &= \mu_{s_i,t_i,2} + w_i \times \beta_2 + x_i \times \gamma_2 + z_i \times \delta_2 \\
+\mu_{s_i,t_i,k} &\sim \text{N}(a,b) \\ 
+\beta_k, \gamma_k, \delta_k &\sim \text{N}(0,1)
+\end{align*}
+
+Here, $p_{ik}$ is the probability of responder $i$ reporting $k$ events and $\mu_{s_i,t_i,k}$ is the log odds of a responder receiving strategy $s_i$ at scheduled timepoint $t_i$ reporting $k$ events. The log odds ratios for sex, Indigenous status and comorbidity are represented by $\beta_k$, $\gamma_k$ and $\delta_k$, respectively, for $k$ events. The hyperparameters $a$ and $b$ would be chosen so that the prior distributions are weakly informative and will depend on the specific outcome. For each scheduled timepoint $t_i$ and number of events $k$, the difference in event probabilities can be calculated with $\text{logit}^{-1}(\mu_{\text{Concomitant},t_i,k}) - \text{logit}^{-1}(\mu_{\text{Separate},t_i,k})$. Note that we set $p_{i2} = 0$ when $s_i = \text{Concomitant}$.
+
+\clearpage
+
+The model is implemented in STAN as follows:
+
+\small
+```{r, echo = FALSE, comment = ""}
+writeLines(readLines("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_C.stan"))
+```
+\normalsize
+
+\clearpage
+
+### Example
+
+Setup the data and model parameters:
+
+```{r}
+N_C <- 1000
+N_strat_C <- 2
+N_sched_C <- 1
+s_C <- sample(1:N_strat_C, size = N_C, replace = TRUE)
+t_C <- rep(1:N_sched_C, N_C/N_sched_C)
+w_C <- sample(c(0,1), size = N_C, replace = TRUE)
+x_C <- sample(c(0,1), size = N_C, replace = TRUE)
+z_C <- sample(c(0,1), size = N_C, replace = TRUE)
+
+mu_C <- array(NA, dim = c(N_strat_C, N_sched_C, 2))
+mu_C[,,1] <- qlogis(0.3)
+mu_C[2,,2] <- qlogis(0.05)
+beta1_C <- beta2_C <- 0
+gamma1_C <- gamma2_C <- 0
+delta1_C <- delta2_C <- 0
+p_C <- eta_C <- matrix(0, nrow = N_C, ncol = 3)
+for(i in 1:N_C){
+  eta_C[i, 2] <- mu_C[s_C[i], t_C[i], 1] + 
+                 w_C[i]*beta1_C + 
+                 x_C[i]*gamma1_C + 
+                 z_C[i]*delta1_C
+  if(s_C[i] == 1){
+    eta_C[i, 3] <- -Inf
+  } else {
+    eta_C[i, 3] <- mu_C[s_C[i], t_C[i], 2] + 
+                   w_C[i]*beta2_C + 
+                   x_C[i]*gamma2_C + 
+                   z_C[i]*delta2_C
+  }
+  p_C[i,] <- exp(eta_C[i,])/sum(exp(eta_C[i,]))
+}
+
+y_C <- sapply(1:N_C, function(i) sample(1:3, size = 1, prob = p_C[i,]))
+a <- qlogis(0.3)
+b <- d <- 2
+c <- qlogis(0.05)
+
+dat_C <- list(N = N_C,
+              N_strat = N_strat_C,
+              N_sched = N_sched_C,
+              s = s_C,
+              t = t_C,
+              w = w_C,
+              x = x_C,
+              z = z_C,
+              y = y_C,
+              a = a,
+              b = b,
+              c = c,
+              d = d)
+```
+
+\clearpage
+
+Fit the model, extract the posterior distributions and visualise:
+
+```{r, echo = FALSE}
+model_C <- cmdstan_model("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_C.stan")
+drp <- capture.output({fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8)})
+draws_C <- as_draws_matrix(fit_C$draws(c("mu")))
+dat_vis_C <- data.frame(x = plogis(as.vector(draws_C)),
+                        strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 2),
+                        Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2))
+dat_vis_C <- dat_vis_C[!(dat_vis_C$strategy == "Concomitant" & dat_vis_C$Parameter == "P(k = 2)"),]
+```
+
+```{r, echo = FALSE, fig.cap = "Posterior distributions for Scenario C parameters."}
+ggplot(dat_vis_C, aes(x = x, colour = Parameter)) +
+  facet_wrap(~strategy) +
+  geom_density() +
+  scale_colour_manual(values = colours)
+```
+
+The means and 95\% credible intervals for the event probabilities for each strategy are: 
+
+```{r, echo = FALSE}
+summary_fun_C <- function(strat, k, dat){
+  mn <- format(round(mean(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
+  cr <- format(round(quantile(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
+  paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
+}
+
+summary_fun_C("Concomitant", 1, dat_vis_C)
+summary_fun_C("Separate", 1, dat_vis_C)
+summary_fun_C("Separate", 2, dat_vis_C)
+```
