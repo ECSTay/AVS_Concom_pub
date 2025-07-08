@@ -26,6 +26,40 @@ dat$any_event <- as.integer(dat$any_event)
 
 
 
+##########################
+#sim code from the SAP
+N_A <- 1000
+N_strat_A <- 2
+N_sched_A <- 1
+s_A <- sample(1:N_strat_A, size = N_A, replace = TRUE)
+t_A <- rep(1:N_sched_A, N_A/N_sched_A)
+w_A <- sample(c(0,1), size = N_A, replace = TRUE)
+x_A <- sample(c(0,1), size = N_A, replace = TRUE)
+z_A <- sample(c(0,1), size = N_A, replace = TRUE)
+mu_A <- matrix(qlogis(0.3), nrow = N_strat_A, ncol = N_sched_A)
+beta_A <- gamma_A <- delta_A <- 0
+p_A <- sapply(1:N_A, function(i) plogis(mu_A[s_A[i], t_A[i]] +
+                                          w_A[i]*beta_A +
+                                          x_A[i]*gamma_A +
+                                          z_A[i]*delta_A))
+y_A <- rbinom(N_A, 1, p_A)
+a <- qlogis(0.3)
+b <- 2
+
+dat_A <- list(N = N_A,
+              N_strat = N_strat_A,
+              N_sched = N_sched_A,
+              s = s_A,
+              t = t_A,
+              w = w_A,
+              x = x_A,
+              z = z_A,
+              y = y_A,
+              a = a,
+              b = b)
+str(dat_A)
+
+
 
 
 
