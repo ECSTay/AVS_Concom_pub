@@ -3,9 +3,12 @@
 library(tidyverse)
 library(stringr)
 library(data.table)
+library(here)
 
 readRenviron(here(".Renviron"))
 RDS_PATH <- Sys.getenv("RDS_PATH")
+
+read_rds(RDS_PATH, file = "/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling.rda")
 
 load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling.rda")
 str(infant)
