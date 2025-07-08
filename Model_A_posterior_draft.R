@@ -10,7 +10,7 @@ N_A                         ## number of responders
 N_strat_A                   ## number of strategies
 N_sched_A                   ## number of schedules
 
-s_A <- dat$group             ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
+s_A <- dat$group             ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate vaccination"
 t_A <- dat$schedule          ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w_A <- dat$sex               ## sex - 0 = "Male", 1 = "Female"
 x_A <- dat$indig             ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
