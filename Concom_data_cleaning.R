@@ -31,7 +31,8 @@ dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 dat$any_event <- as.integer(dat$any_event)
 #at least one any_event
-
+dat <- dat %>%
+  mutate(any_event = case_when(any_event == "2" ~ 1, .default = any_event))
 
 
 write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv", row.names = FALSE)

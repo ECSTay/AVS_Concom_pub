@@ -6,9 +6,9 @@ library(ggplot2)
 
 load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_dat.rda")#load in the cleaned data for analysis
 
-N_A                         ## number of responders
-N_strat_A                   ## number of strategies
-N_sched_A                   ## number of schedules
+N_A  = length(dat)                        ## number of responders
+N_strat_A  = 2                  ## number of strategies
+N_sched_A  = 4                ## number of schedules
 
 s_A <- dat$group             ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate vaccination"
 t_A <- dat$schedule          ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
@@ -40,7 +40,7 @@ dat_A <- list(N = N_A,
 model_A <- cmdstan_model(write_stan_file(readLines("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")))###
 
 fit_A <- model_A$sample(data = dat_A, 
-                  chains = 8, parallel_chains = 8)###
+                  chains = 8, parallel_chains = 8, warmup = 100,iter = 300)###
 postr <- posterior::as_draws_matrix(fit_A$draws())
 
 ##SAP code
