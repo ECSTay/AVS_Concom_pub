@@ -4,9 +4,9 @@ library(cmdstanr)
 library(posterior)
 library(ggplot2)
 
-load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_dat.rda")#load in the cleaned data for analysis
 
-N_A  = length(dat)                        ## number of responders
+
+N_A  = nrow(dat)                        ## number of responders
 N_strat_A  = 2                  ## number of strategies
 N_sched_A  = 4                ## number of schedules
 
@@ -19,7 +19,7 @@ y_A <- dat$any_event         ## outcome - AEFI, MA or ?Fever - 0 = No, 1 = Yes
 
 
 a <-  qlogis(0.3)          ## prior distribution mean - depends on the schedule and the vaccine strategy?
-b <-                       ## prior distribution standard deviation
+b <-   2                    ## prior distribution standard deviation
 
 
 dat_A <- list(N = N_A,
@@ -37,15 +37,16 @@ dat_A <- list(N = N_A,
 
 
 
-model_A <- cmdstan_model(write_stan_file(readLines("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")))###
+model_A <- cmdstan_model(write_stan_file(readLines("C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_A.stan")))###
 
 fit_A <- model_A$sample(data = dat_A, 
-                  chains = 8, parallel_chains = 8, warmup = 100,iter = 300)###
+                  chains = 4, parallel_chains = 4)###
 postr <- posterior::as_draws_matrix(fit_A$draws())
 
 ##SAP code
 model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")
 drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)}) # fits the model and shows the output
+
 draws_A <- as_draws_matrix(fit_A$draws(c("mu")))#posterior
 
 dat_vis_A <- data.frame(x = plogis(as.vector(draws_A)),
