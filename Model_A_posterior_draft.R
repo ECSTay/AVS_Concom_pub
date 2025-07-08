@@ -4,28 +4,18 @@ library(cmdstanr)
 library(posterior)
 library(ggplot2)
 
-conds <- c("pmh_heart_dis", "pmh_bp", "pmh_diabetes", "pmh_lung",
-           "pmh_obesity", "pmh_kidney", "pmh_liver", "pmh_cancer", "pmh_blood_cancer", 
-           "pmh_chemo_rad", "pmh_transplant_organ", "pmh_transplant_bone", "pmh_neuro", "pmh_inflam", "pmh_immunodef")
-cond_names <- c("Heart disease",
-                "Poorly controlled blood pressure", "Diabetes", "Chronic lung disease",
-                paste0("Obesity (BMI ", "\U2265", "40)"), "Chronic kidney failure", "Chronic liver disease",
-                "Cancer (Solid organ)", "Haematologial cancer", "Receiving chemotherapy or radiotherapy",
-                "Organ transplant recipient", "Bone marrow transplant recipient", "Neurological condition",
-                "Chronic inflammatory condition", "Immunodeficiency")
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_dat.rda")#load in the cleaned data for analysis
 
-#load in data
+N_A                         ## number of responders
+N_strat_A                   ## number of strategies
+N_sched_A                   ## number of schedules
 
-N                         ## number of responders
-N_strat                   ## number of strategies
-N_sched                   ## number of schedules
-
-s <- dat$strat            ## vaccine strategy
-t <- dat$sched            ## schedule - 2mths, 4mths, 6mths, 12 mths
-w <- dat$sex              ## sex
-x <- dat$indig            ## Indigenous status
-z <- dat$conds            ## comorbidity
-y <- dat$AEFI             ## outcome - AEFI, MA or ?Fever
+s_A <- dat$group             ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
+t_A <- dat$schedule          ## schedule - 1 = 2mths, 2 = 4mths, 3 = 6mths, 4 = 12 mths
+w_A <- dat$sex               ## sex - 1 = "Female", 2 = "Male"
+x_A <- dat$indig             ## Indigenous status - 1 = Non-indig, 2 = Aboriginal and Torres Strait Islander
+z_A <- dat$pmh               ## comorbidity - 0 = No, 1 = Yes
+y_A <- dat$any_event         ## outcome - AEFI, MA or ?Fever - 0 = No, 1 = Yes
 
 
 a <-  qlogis(0.3)          ## prior distribution mean - depends on the schedule and the vaccine strategy?
