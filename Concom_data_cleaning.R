@@ -29,9 +29,8 @@ table(dat$group)
 #Concomitant vaccination    Seperate vaccination 
 #8749                    2352 
 dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Separate vaccination" = "2"))
-dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "2"))
+dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 setnames(dat, "atsi", "indig")
-dat[, indig := indig + 1]
 dat$schedule <- str_replace_all(dat$schedule, c("2 mths" = "1", "4 mths" = "2",
                                                  "6 mths" = "3", "12 mths" = "4"))
 
@@ -39,7 +38,7 @@ dat$schedule <- str_replace_all(dat$schedule, c("2 mths" = "1", "4 mths" = "2",
 
 
 
-#changing to factors
+#?changing to factors
 dat[,
            `:=`(
              sex = factor(sex, levels = c("1", "2")), #Female = 1
