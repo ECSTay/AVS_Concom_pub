@@ -24,6 +24,7 @@ dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 dat$any_event <- as.integer(dat$any_event)
 
+write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv", row.names = FALSE)
 
 
 ##########################
