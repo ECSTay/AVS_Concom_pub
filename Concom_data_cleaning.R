@@ -16,11 +16,11 @@ str(infant)
 dat <- as.data.table(infant)
 colnames(dat) <- tolower(colnames(dat))
 dat[is.na(dat)] <- 0
-dat <- dat[!(is.na(ANY_EVENT)) &
-                           !(is.na(IS_INDIGENOUS)) &
-                           !(is.na(SEX)) & 
-                           !(is.na(VAX_BRAND)) &
-                           !(is.na(PMH)), ]
+dat <- dat[!(is.na(any_event)) &
+                           !(is.na(atsi)) &
+                           !(is.na(sex)) & 
+                           !(is.na(group)) &
+                           !(is.na(pmh)), ]
 
 
 
