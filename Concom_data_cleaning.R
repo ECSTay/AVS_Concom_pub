@@ -40,9 +40,12 @@ dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 dat$any_event <- as.integer(dat$any_event)
+dat$impact <- as.integer(dat$impact)
 #at least one any_event
 #at <- dat %>%
 # mutate(any_event = case_when(any_event == "2" ~ 1, .default = any_event))
+
+
 #impact days
 #impact_days_1 - - after first encoutner
 #impact_days_2 - after second encounter
@@ -83,8 +86,57 @@ dat_A <- list(N = N_A,
               a = a,
               b = b)
 str(dat_A)
+##########################################
 
+#MOdel C data sim from SAP
+N_C <- 1000
+N_strat_C <- 2
+N_sched_C <- 1
+s_C <- sample(1:N_strat_C, size = N_C, replace = TRUE)
+t_C <- rep(1:N_sched_C, N_C/N_sched_C)
+w_C <- sample(c(0,1), size = N_C, replace = TRUE)
+x_C <- sample(c(0,1), size = N_C, replace = TRUE)
+z_C <- sample(c(0,1), size = N_C, replace = TRUE)
+mu_C <- array(NA, dim = c(N_strat_C, N_sched_C, 2))
+mu_C[,,1] <- qlogis(0.3)
+mu_C[2,,2] <- qlogis(0.05)
+beta1_C <- beta2_C <- 0
+gamma1_C <- gamma2_C <- 0
+delta1_C <- delta2_C <- 0
+p_C <- eta_C <- matrix(0, nrow = N_C, ncol = 3)
+for(i in 1:N_C){
+  eta_C[i, 2] <- mu_C[s_C[i], t_C[i], 1] +
+    w_C[i]*beta1_C +
+    x_C[i]*gamma1_C +
+    z_C[i]*delta1_C
+  if(s_C[i] == 1){
+    eta_C[i, 3] <- -Inf
+  } else {
+    eta_C[i, 3] <- mu_C[s_C[i], t_C[i], 2] +
+      w_C[i]*beta2_C +
+      x_C[i]*gamma2_C +
+      z_C[i]*delta2_C
+  }
+  p_C[i,] <- exp(eta_C[i,])/sum(exp(eta_C[i,]))
+}
+y_C <- sapply(1:N_C, function(i) sample(1:3, size = 1, prob = p_C[i,]))
+a <- qlogis(0.3)
+b <- d <- 2
+c <- qlogis(0.05)
+dat_C <- list(N = N_C,
+              N_strat = N_strat_C,
+              N_sched = N_sched_C,
+              s = s_C,
+              t = t_C,
+              w = w_C,
+              x = x_C,
+              z = z_C,
+              y = y_C,
+              a = a,
+              b = b,
+              c = c,
+              d = d)
 
-
+str(dat_C)
 
 
