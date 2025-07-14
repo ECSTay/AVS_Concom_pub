@@ -1,4 +1,4 @@
-##############Model A analysis script - prob of reporting at least one AEFI/MA following either NIP or Men B alone AND concom
+##############Model A analysis script - prob of reporting at least one MA following either Men B first, NIP first OR concom
 
 library(cmdstanr)
 library(posterior)
@@ -6,19 +6,19 @@ library(ggplot2)
 
 
 
-N_A  = nrow(dat)                        ## number of responders
-N_strat_A  = 2                  ## number of strategies
-N_sched_A  = 4                ## number of schedules
+N_A  = nrow(dat)                     ## number of responders
+N_strat_A  = 3                       ## number of strategies
+N_sched_A  = 4                       ## number of schedules
 
-s_A <- dat$group             ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate vaccination"
-t_A <- dat$schedule          ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
-w_A <- dat$sex               ## sex - 0 = "Male", 1 = "Female"
-x_A <- dat$indig             ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
-z_A <- dat$pmh               ## comorbidity - 0 = No, 1 = Yes
-y_A <- dat$any_event         ## outcome - AEFI, MA or ?Fever - 0 = No, 1 = Yes
+s_A <- dat$group                     ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate vaccination"
+t_A <- dat$schedule                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
+w_A <- dat$sex                       ## sex - 0 = "Male", 1 = "Female"
+x_A <- dat$indig                     ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
+z_A <- dat$pmh                       ## comorbidity - 0 = No, 1 = Yes
+y_A <- dat$medical_attention         ## outcome - MA - 0 = No, 1 = Yes
 
 
-a <-  qlogis(0.3)          ## prior distribution mean - depends on the schedule and the vaccine strategy?
+a <-  qlogis(0.3)           ## prior distribution mean - depends on the schedule and the vaccine strategy?
 b <-   2                    ## prior distribution standard deviation
 
 
