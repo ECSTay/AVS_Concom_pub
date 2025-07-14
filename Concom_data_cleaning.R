@@ -1,11 +1,12 @@
-##Thuy's concom/infant data - for Model A prob of reporting at least one AEFI/MA following either NIP or Men B alone AND concom
+##Model A prob of reporting at least one AEFI/MA following either NIP or Men B alone AND concom
 
 library(tidyverse)
 library(stringr)
 library(data.table)
 library(here)
 
-load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling.rda")#connect to USyd RDS)
+#load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling.rda")#connect to USyd RDS)
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_updated.rda")#connect to USyd RDS)
 str(infant)
 
 dat <- as.data.table(infant)
@@ -17,10 +18,19 @@ dat <- dat[!(is.na(any_event)) &
                            !(is.na(sex)) & 
                            !(is.na(group)) &
                            !(is.na(pmh)), ]
+ table(dat$medical_attention)
+
+# 0     1 
+# 10852   236 
+#use Model A for medical attention
+
+
+table(dat$vax_sequence)
+dat$vax_sequence[is.na(dat$vax_sequence)] <- "Concomitant vaccination"
+dat$vax_sequence <- str_replace_all(dat$vax_sequence, c("Concomitant vaccination" = "1", "MenB first" = "2", "NIP first" = "3"))
+dat$vax_sequence <- as.integer(dat$vax_sequence)
 
 table(dat$group)
-#Concomitant vaccination    Seperate vaccination 
-#8749                    2352 
 dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
 dat$group <- as.integer(dat$group)
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
@@ -31,12 +41,15 @@ dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 dat$any_event <- as.integer(dat$any_event)
 #at least one any_event
-dat <- dat %>%
-  mutate(any_event = case_when(any_event == "2" ~ 1, .default = any_event))
+#at <- dat %>%
+# mutate(any_event = case_when(any_event == "2" ~ 1, .default = any_event))
+#impact days
+#impact_days_1 - - after first encoutner
+#impact_days_2 - after second encounter
 
 
 write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv", row.names = FALSE)
-
+#estimating P(at least one MA)
 
 ##########################
 #sim code from the SAP
