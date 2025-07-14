@@ -16,19 +16,20 @@ cond_names <- c("Heart disease",
 
 #load in data
 
-N                         ## number of responders
-N_strat                   ## number of strategies
-N_sched                   ## number of schedules
+N_C = nrow(dat)                    ## number of responders
+N_strat_C  = 3                     ## number of strategies
+N_sched_C  = 4                     ## number of schedules
 
-s <- dat$strat            ## vaccine strategy
-t <- dat$sched            ## schedule - 2mths, 4mths, 6mths, 12 mths
-w <- dat$sex              ## sex
-x <- dat$indig            ## Indigenous status
-z <- dat$PMH            ## comorbidity
-y <- dat$AEFI             ## outcome - AEFI, MA or ?Fever
+s_C <- dat$vax_sequence            ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "MenB first", 3 = "NIP first"
+t_C <- dat$sched                   ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
+w_C <- dat$sex                     ## sex - 0 = "Male", 1 = "Female"
+x_C <- dat$indig                   ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
+z_C <- dat$PMH                     ## comorbidity
 
+y <- dat$AEFI             ## outcome - 0,1,2
+y <- dat$impact           ## outcome - 0,1,2
 
-a <-  qlogis(0.3)          ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
+a <- qlogis(0.3)           ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
 b <-                       ## prior distribution standard deviation for two events
 c <- qlogis(0.05)          ## prior distribution mean for two events
 d <-                       ## prior distribution for standard deviation for two events
@@ -62,8 +63,8 @@ model_C <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_c
 drp <- capture.output({fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8)})
 draws_C <- as_draws_matrix(fit_C$draws(c("mu")))
 dat_vis_C <- data.frame(x = plogis(as.vector(draws_C)),
-                        strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 2),
-                        Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2))
+                        strategy = rep(rep(c("Concomitant", "MenB first", "NIP first"), each = 8000), 3),
+                        Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*3))
 dat_vis_C <- dat_vis_C[!(dat_vis_C$strategy == "Concomitant" & dat_vis_C$Parameter == "P(k = 2)"),]
 
 summary_fun_C <- function(strat, k, dat){
@@ -73,5 +74,7 @@ summary_fun_C <- function(strat, k, dat){
 }
 
 summary_fun_C("Concomitant", 1, dat_vis_C)
-summary_fun_C("Separate", 1, dat_vis_C)
-summary_fun_C("Separate", 2, dat_vis_C)
+summary_fun_C("MenB first", 1, dat_vis_C)
+summary_fun_C("MenB first", 2, dat_vis_C)
+summary_fun_C("NIP first", 1, dat_vis_C)
+summary_fun_C("NIP first", 2, dat_vis_C)
