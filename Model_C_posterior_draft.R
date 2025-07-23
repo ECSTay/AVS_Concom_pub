@@ -1,5 +1,4 @@
-##############Model C analysis script - prob of reporting at least one AEFI/MA following either NIP or Men B alone AND concom
-
+##############Model C analysis script - prob of reporting at least one AEFI/Impact following (1) concom (2) NIP first (3) Men B first
 library(cmdstanr)
 library(posterior)
 library(ggplot2)
@@ -20,7 +19,7 @@ N_C = nrow(dat)                    ## number of responders
 N_strat_C  = 3                     ## number of strategies
 N_sched_C  = 4                     ## number of schedules
 
-s_C <- dat$vax_sequence            ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "MenB first", 3 = "NIP first"
+s_C <- dat$vax_sequence            ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "NIP first", 3 = "Men B first"
 t_C <- dat$sched                   ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w_C <- dat$sex                     ## sex - 0 = "Male", 1 = "Female"
 x_C <- dat$indig                   ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
