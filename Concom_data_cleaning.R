@@ -1,5 +1,4 @@
-##Model A prob of reporting at least one AEFI/MA following either NIP or Men B alone AND concom
-
+##Model A prob of reporting at least one MA following either(1) Concom and (2) NIP or Men B separately
 library(tidyverse)
 library(stringr)
 library(data.table)
@@ -25,9 +24,6 @@ dat <- dat[!(is.na(any_event)) &
 #use Model A for medical attention
 
 
-table(dat$vax_sequence)
-dat$vax_sequence[is.na(dat$vax_sequence)] <- "Concomitant vaccination"
-dat$vax_sequence <- str_replace_all(dat$vax_sequence, c("Concomitant vaccination" = "1", "MenB first" = "2", "NIP first" = "3"))
 dat$vax_sequence <- as.integer(dat$vax_sequence)
 
 table(dat$group)
@@ -46,9 +42,6 @@ dat$impact <- as.integer(dat$impact)
 # mutate(any_event = case_when(any_event == "2" ~ 1, .default = any_event))
 
 
-#impact days
-#impact_days_1 - - after first encoutner
-#impact_days_2 - after second encounter
 
 
 write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv", row.names = FALSE)
@@ -126,17 +119,67 @@ c <- qlogis(0.05)
 dat_C <- list(N = N_C,
               N_strat = N_strat_C,
               N_sched = N_sched_C,
-              s = s_C,
-              t = t_C,
-              w = w_C,
-              x = x_C,
-              z = z_C,
-              y = y_C,
+              s = s_C, #strategy/vax seqeunce - int
+              t = t_C, #schedule - int
+              w = w_C, #sex
+              x = x_C, #indig
+              z = z_C, #comorbidity
+              y = y_C, #outcome - int
               a = a,
               b = b,
               c = c,
               d = d)
 
 str(dat_C)
+##########################################################################################################
+##Model C prob of reporting at least one AEFI/IMPACT  following (1)Concom, (2) NIP first or (3) Men B first
 
+library(tidyverse)
+library(stringr)
+library(data.table)
+library(here)
 
+#load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling.rda")#connect to USyd RDS)
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_updated.rda")#connect to USyd RDS)
+str(infant)
+
+dat <- as.data.table(infant)
+colnames(dat) <- tolower(colnames(dat))
+#333
+dat <- dat[!(is.na(any_event)) &
+             !(is.na(schedule)) &
+             !(is.na(atsi)) &
+             !(is.na(sex)) & 
+             !(is.na(group)) &
+             !(is.na(pmh)), ]
+dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
+dat <- dat[dat$vax_time_diff != "3",]
+dat <- dat[dat$vax_time_diff != "367",] #11085
+
+table(dat$vax_sequence)
+dat$vax_sequence[is.na(dat$vax_sequence)] <- "Concomitant vaccination"
+dat$vax_sequence <- str_replace_all(dat$vax_sequence, c("Concomitant vaccination" = "1", "NIP first" = "2", "MenB first" = "3"))
+dat$vax_sequence <- as.integer(dat$vax_sequence)
+
+dat$any_event <- as.integer(dat$any_event)
+table(dat$any_event)
+#   0    1    2 
+# 6375 4339  371 
+
+dat$impact <- as.integer(dat$impact)
+table(dat$impact)
+#   0     1     2 
+# 10632   449     7 
+
+#impact days
+#impact_days_1 - - after first encoutner
+#impact_days_2 - after second encounter
+
+dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
+                                                "6 months" = "3","11" = "4"))
+dat$schedule <- as.integer(dat$schedule)
+dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
+dat$sex <- as.numeric(dat$sex)
+setnames(dat, "atsi", "indig")
+
+write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv", row.names = FALSE)
