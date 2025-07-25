@@ -33,6 +33,10 @@ knitr::opts_chunk$set(
 library(cmdstanr)
 library(posterior)
 library(ggplot2)
+library(tidyverse)
+library(stringr)
+library(data.table)
+library(here)
 
 ## set the seed
 
@@ -84,7 +88,30 @@ The model is implemented in STAN as follows:
 \small
 ```{r, echo = FALSE, comment = ""}
 
-dat <- read.csv()
+#dat <- read.csv()
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_updated.rda")#connect to USyd RDS)
+str(infant)
+
+dat <- as.data.table(infant)
+colnames(dat) <- tolower(colnames(dat))
+
+dat <- dat[!(is.na(any_event)) &
+                           !(is.na(schedule)) &
+                           !(is.na(atsi)) &
+                           !(is.na(sex)) & 
+                           !(is.na(group)) &
+                           !(is.na(pmh)), ]
+dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
+dat <- dat[dat$vax_time_diff != "367",]
+
+dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
+dat$group <- as.integer(dat$group)
+dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
+                                                "6 months" = "3","11" = "4"))
+dat$schedule <- as.integer(dat$schedule)
+dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
+dat$sex <- as.numeric(dat$sex)
+setnames(dat, "atsi", "indig")
 
 N_A  = nrow(dat)                     ## number of responders
 N_strat_A  = 2                      ## number of strategies #3
@@ -101,7 +128,6 @@ y_A <- dat$medical_attention         ## outcome - MA - 0 = No, 1 = Yes
 
 a <-  qlogis(0.3)           ## prior distribution mean - depends on the schedule and the vaccine strategy?
 b <-   2                    ## prior distribution standard deviation
-
 
 dat_A <- list(N = N_A,
               N_strat = N_strat_A,
