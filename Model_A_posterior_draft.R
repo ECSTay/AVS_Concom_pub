@@ -7,10 +7,11 @@ library(ggplot2)
 
 
 N_A  = nrow(dat)                     ## number of responders
-N_strat_A  = 3                       ## number of strategies
+N_strat_A  = 2                      ## number of strategies #3
 N_sched_A  = 4                       ## number of schedules
 
-s_A <- dat$group                     ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate vaccination"
+#s_A <- dat$vax_sequence              ## vaccine strategy - "Concomitant vaccination" = "1", "NIP first" = "2", "MenB first" = "3"
+s_A <- dat$group                     ## vaccine strategy - "Concomitant vaccination" = "1", "Separate" = "2"
 t_A <- dat$schedule                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w_A <- dat$sex                       ## sex - 0 = "Male", 1 = "Female"
 x_A <- dat$indig                     ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
