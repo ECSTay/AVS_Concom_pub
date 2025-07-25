@@ -150,6 +150,7 @@ dat <- dat[!(is.na(any_event)) &
              !(is.na(atsi)) &
              !(is.na(sex)) & 
              !(is.na(group)) &
+             #!is.na(fever)) & 4 records missing a value for fever
              !(is.na(pmh)), ]#11088
 dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
 
