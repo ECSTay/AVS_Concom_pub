@@ -89,29 +89,7 @@ The model is implemented in STAN as follows:
 ```{r, echo = FALSE, comment = ""}
 
 #dat <- read.csv()
-load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_updated.rda")#connect to USyd RDS)
-str(infant)
-
-dat <- as.data.table(infant)
-colnames(dat) <- tolower(colnames(dat))
-
-dat <- dat[!(is.na(any_event)) &
-                           !(is.na(schedule)) &
-                           !(is.na(atsi)) &
-                           !(is.na(sex)) & 
-                           !(is.na(group)) &
-                           !(is.na(pmh)), ]
-dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
-dat <- dat[dat$vax_time_diff != "367",]
-
-dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
-dat$group <- as.integer(dat$group)
-dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
-                                                "6 months" = "3","11" = "4"))
-dat$schedule <- as.integer(dat$schedule)
-dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
-dat$sex <- as.numeric(dat$sex)
-setnames(dat, "atsi", "indig")
+dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv")
 
 N_A  = nrow(dat)                     ## number of responders
 N_strat_A  = 2                      ## number of strategies #3
@@ -142,7 +120,7 @@ dat_A <- list(N = N_A,
               b = b)
 
 #writeLines(readLines("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_A.stan"))
-writeLines(readLines("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan"))
+#writeLines(readLines("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan"))
 ```
 \normalsize
 
