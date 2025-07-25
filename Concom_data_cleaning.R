@@ -26,7 +26,7 @@ table(dat$medical_attention)
 # 10852   236 
 #use Model A for medical attention - no responses for 2 MA
 
-dat$vax_sequence <- as.integer(dat$vax_sequence)
+#dat$vax_sequence <- as.integer(dat$vax_sequence)
 
 table(dat$group)
 dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
@@ -155,10 +155,13 @@ dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
 
 dat <- dat[dat$vax_time_diff != "367",] #11087
 
-table(dat$vax_sequence)
 dat$vax_sequence[is.na(dat$vax_sequence)] <- "Concomitant vaccination"
 dat$vax_sequence <- str_replace_all(dat$vax_sequence, c("Concomitant vaccination" = "1", "NIP first" = "2", "MenB first" = "3"))
 dat$vax_sequence <- as.integer(dat$vax_sequence)
+table(dat$vax_sequence)
+
+#1    2    3 
+#8738 2208  141 
 
 dat$any_event <- as.integer(dat$any_event)
 table(dat$any_event)
@@ -170,13 +173,16 @@ table(dat$impact)
 #   0     1     2 
 # 10632   449     7 
 
-#impact days
-#impact_days_1 - - after first encoutner
-#impact_days_2 - after second encounter
-
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
                                                 "6 months" = "3","11" = "4"))
 dat$schedule <- as.integer(dat$schedule)
+table(dat$vax_sequence, dat$schedule)
+
+#     1    2    3    4
+# 1 2118 3113 1156 2351
+# 2  653  630  242  683
+# 3    0   85    8   48
+
 dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
