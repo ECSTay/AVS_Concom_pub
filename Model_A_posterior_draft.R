@@ -4,10 +4,10 @@ library(cmdstanr)
 library(posterior)
 library(ggplot2)
 
-
+dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelA.csv")
 
 N_A  = nrow(dat)                     ## number of responders
-N_strat_A  = 2                      ## number of strategies #3
+N_strat_A  = 2                       ## number of strategies #3
 N_sched_A  = 4                       ## number of schedules
 
 #s_A <- dat$vax_sequence              ## vaccine strategy - "Concomitant vaccination" = "1", "NIP first" = "2", "MenB first" = "3"
@@ -46,7 +46,7 @@ postr <- posterior::as_draws_matrix(fit_A$draws())
 
 ##SAP code
 model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")
-drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)}) # fits the model and shows the output
+drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)}) # fits the model and shows the output #4 min
 
 draws_A <- as_draws_matrix(fit_A$draws(c("mu")))#posterior
 
