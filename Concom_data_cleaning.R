@@ -145,15 +145,15 @@ str(infant)
 
 dat <- as.data.table(infant)
 colnames(dat) <- tolower(colnames(dat))
-#333
+#11101
 dat <- dat[!(is.na(any_event)) &
              !(is.na(schedule)) &
              !(is.na(atsi)) &
              !(is.na(sex)) & 
              !(is.na(group)) &
-             !(is.na(pmh)), ]
+             !(is.na(pmh)), ]#11088
 dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
-dat <- dat[dat$vax_time_diff != "3",]
+dat <- dat[dat$vax_time_diff != "3",] # exclude 3 days or less or less than 3 days?
 dat <- dat[dat$vax_time_diff != "367",] #11085
 
 table(dat$vax_sequence)
