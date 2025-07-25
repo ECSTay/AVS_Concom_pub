@@ -3,17 +3,9 @@ library(cmdstanr)
 library(posterior)
 library(ggplot2)
 
-conds <- c("pmh_heart_dis", "pmh_bp", "pmh_diabetes", "pmh_lung",
-           "pmh_obesity", "pmh_kidney", "pmh_liver", "pmh_cancer", "pmh_blood_cancer", 
-           "pmh_chemo_rad", "pmh_transplant_organ", "pmh_transplant_bone", "pmh_neuro", "pmh_inflam", "pmh_immunodef")
-cond_names <- c("Heart disease",
-                "Poorly controlled blood pressure", "Diabetes", "Chronic lung disease",
-                paste0("Obesity (BMI ", "\U2265", "40)"), "Chronic kidney failure", "Chronic liver disease",
-                "Cancer (Solid organ)", "Haematologial cancer", "Receiving chemotherapy or radiotherapy",
-                "Organ transplant recipient", "Bone marrow transplant recipient", "Neurological condition",
-                "Chronic inflammatory condition", "Immunodeficiency")
 
 #load in data
+dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv")
 
 N_C = nrow(dat)                    ## number of responders
 N_strat_C  = 3                     ## number of strategies
@@ -25,8 +17,9 @@ w_C <- dat$sex                     ## sex - 0 = "Male", 1 = "Female"
 x_C <- dat$indig                   ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
 z_C <- dat$PMH                     ## comorbidity
 
-y <- dat$AEFI             ## outcome - 0,1,2
+y <- dat$any_event        ## outcome - 0,1,2
 y <- dat$impact           ## outcome - 0,1,2
+y <- dat$ma               ## outcome - 0,1,2
 
 a <- qlogis(0.3)           ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
 b <-                       ## prior distribution standard deviation for two events
@@ -73,7 +66,7 @@ summary_fun_C <- function(strat, k, dat){
 }
 
 summary_fun_C("Concomitant", 1, dat_vis_C)
-summary_fun_C("MenB first", 1, dat_vis_C)
-summary_fun_C("MenB first", 2, dat_vis_C)
 summary_fun_C("NIP first", 1, dat_vis_C)
 summary_fun_C("NIP first", 2, dat_vis_C)
+summary_fun_C("MenB first", 1, dat_vis_C)
+summary_fun_C("MenB first", 2, dat_vis_C)
