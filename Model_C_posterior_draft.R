@@ -59,6 +59,11 @@ dat_vis_C <- data.frame(x = plogis(as.vector(draws_C)),
                         Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*3))
 dat_vis_C <- dat_vis_C[!(dat_vis_C$strategy == "Concomitant" & dat_vis_C$Parameter == "P(k = 2)"),]
 
+ggplot(dat_vis_C, aes(x = x, colour = Parameter)) +
+  facet_wrap(~strategy) +
+  geom_density() +
+  scale_colour_manual(values = colours)
+
 summary_fun_C <- function(strat, k, dat){
   mn <- format(round(mean(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
   cr <- format(round(quantile(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
