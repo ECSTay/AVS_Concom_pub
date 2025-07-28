@@ -26,9 +26,21 @@ table(dat$medical_attention)
 # 10852   236 
 #use Model A for medical attention - no responses for 2 MA
 
-#dat$vax_sequence <- as.integer(dat$vax_sequence)
+table(dat$medical_attention, dat$schedule)
+
+#     12 months 2 months 4 months 6 months
+# 0      2993     2734     3747     1377
+# 1        89       37       81       29
 
 table(dat$group)
+
+table(dat$medical_attention, dat$group)
+
+#         Concomitant vaccination Seperate vaccination
+# 0                    8560                 2291
+# 1                     178                   58
+
+
 dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
 dat$group <- as.integer(dat$group)
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
