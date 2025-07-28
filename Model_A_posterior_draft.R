@@ -54,6 +54,10 @@ draws_A <- as_draws_matrix(fit_A$draws(c("mu")))#posterior
 dat_vis_A <- data.frame(x = plogis(as.vector(draws_A)),
                         Parameter = rep(c("Concomitant", "Separate"), each = 8000))
 
+ggplot(dat_vis_A, aes(x = x, colour = Parameter)) +
+  geom_density() +
+  scale_colour_manual(values = colours)
+
 summary_fun_A <- function(strat, dat){
   mn <- format(round(mean(dat[dat$Parameter == strat,]$x), 2), nsmall = 2)
   cr <- format(round(quantile(dat[dat$Parameter == strat,]$x, c(0.025, 0.975)), 2), nsmall = 2)
