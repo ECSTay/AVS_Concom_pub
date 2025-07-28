@@ -64,8 +64,6 @@ We denote the vaccination *strategy* for responder $i$ with $s_i \in \{\text{Con
 
 The event of interest (medically attended adverse events) is defined in the following section.
 
-\clearpage
-
 # Modelling
 
 ## Scenario A
@@ -81,9 +79,6 @@ y_i &\sim \text{Bernoulli}(p_i) \\
 
 Here, $p_i$ is the probability of responder $i$ reporting at least one MA and $\mu_{s_i,t_i}$ is the log odds of a responder receiving strategy $s_i$ at scheduled timepoint $t_i$ reporting at least one event. The log odds ratios for sex, Indigenous status and comorbidity are represented by $\beta$, $\gamma$ and $\delta$, respectively. The hyperparameters $a$ and $b$ would be chosen so that the prior distributions are weakly informative and will depend on the specific outcome. For each scheduled timepoint $t_i$, the difference in event probabilities can be calculated with $\text{logit}^{-1}(\mu_{\text{Concomitant},t_i}) - \text{logit}^{-1}(\mu_{\text{Separate},t_i})$.
 
-\clearpage
-
-The model is implemented in STAN as follows:
 
 \small
 ```{r, echo = FALSE, comment = ""}
@@ -130,7 +125,7 @@ Fit the model, extract the posterior distributions and visualise:
 
 ```{r, echo = FALSE}
 #model_A <- cmdstan_model("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_A.stan")
-model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")
+model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_A.stan")
 drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)})
 draws_A <- as_draws_matrix(fit_A$draws(c("mu")))
 dat_vis_A <- data.frame(x = plogis(as.vector(draws_A)),

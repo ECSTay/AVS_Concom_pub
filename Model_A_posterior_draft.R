@@ -38,15 +38,16 @@ dat_A <- list(N = N_A,
 
 
 
-model_A <- cmdstan_model(write_stan_file(readLines("C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_A.stan")))###
-
-fit_A <- model_A$sample(data = dat_A, 
-                  chains = 4, parallel_chains = 4)###
-postr <- posterior::as_draws_matrix(fit_A$draws())
+# model_A <- cmdstan_model(write_stan_file(readLines("C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_A.stan")))###
+# 
+# fit_A <- model_A$sample(data = dat_A, 
+#                   chains = 4, parallel_chains = 4)###
+# postr <- posterior::as_draws_matrix(fit_A$draws())
 
 ##SAP code
 model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/model_A.stan")
-drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)}) # fits the model and shows the output #4 min
+drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)}) # fits the model and shows the output 
+#4 min
 
 draws_A <- as_draws_matrix(fit_A$draws(c("mu")))#posterior
 
