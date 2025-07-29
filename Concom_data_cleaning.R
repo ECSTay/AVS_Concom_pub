@@ -168,6 +168,9 @@ dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
 
 dat <- dat[dat$vax_time_diff != "367",] #11087
 
+dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
+dat$group <- as.integer(dat$group)
+
 dat$vax_sequence[is.na(dat$vax_sequence)] <- "Concomitant vaccination"
 dat$vax_sequence <- str_replace_all(dat$vax_sequence, c("Concomitant vaccination" = "1", "NIP first" = "2", "MenB first" = "3"))
 dat$vax_sequence <- as.integer(dat$vax_sequence)
