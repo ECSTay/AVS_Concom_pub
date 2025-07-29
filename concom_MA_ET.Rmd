@@ -124,7 +124,6 @@ dat_A <- list(N = N_A,
 Fit the model, extract the posterior distributions and visualise:
 
 ```{r, echo = FALSE}
-#model_A <- cmdstan_model("C:/Users/mdymock/Documents/Projects/AVS/Concomitant/model_A.stan")
 model_A <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_A.stan")
 drp <- capture.output({fit_A <- model_A$sample(dat_A, chains = 8, parallel_chains = 8)})
 draws_A <- as_draws_matrix(fit_A$draws(c("mu")))
