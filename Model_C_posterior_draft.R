@@ -45,7 +45,7 @@ d <- 1                       ## prior distribution for standard deviation for tw
 ##SAP code
 model_C <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_C.stan")
 
-fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8)
+fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) #16 minutes with 100 warmups and 200 draws
 draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
 saveRDS(draws_full, "draws_full_any_event.rds")
 draws_C <- as_draws_matrix(fit_C$draws(c("mu")))
