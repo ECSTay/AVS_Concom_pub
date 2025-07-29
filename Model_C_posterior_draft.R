@@ -5,7 +5,7 @@ library(ggplot2)
 
 
 #load in data
-dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv")
+#dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv")
 
 N_C = nrow(dat)                    ## number of responders
 N_strat_C  = 3                     ## number of strategies
