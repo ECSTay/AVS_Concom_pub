@@ -7,24 +7,24 @@ library(ggplot2)
 #load in data
 #dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
 
-N_C = nrow(dat)                    ## number of responders
+N_C = nrow(dat)                   ## number of responders
 N_strat_C  = 2                    ## number of strategies
-N_sched_C  = 4                     ## number of schedules
+N_sched_C  = 4                    ## number of schedules
 
-#s_C <- dat$vax_sequence            ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "NIP first", 3 = "Men B first"
-s_C <- dat$group            ## vaccine strategy 1 = "Concomitant vaccination", 2 = "Separate"
-t_C <- dat$sched                   ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
-w_C <- dat$sex                     ## sex - 0 = "Male", 1 = "Female"
-x_C <- dat$indig                   ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
+#s_C <- dat$vax_sequence          ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "NIP first", 3 = "Men B first"
+s_C <- dat$group                  ## vaccine strategy 1 = "Concomitant vaccination", 2 = "Separate"
+t_C <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
+w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
+x_C <- dat$indig                  ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
 z_C <- dat$pmh                    ## comorbidity
 
 y <- dat$any_event + 1       ## outcome - 0,1,2 
-y <- dat$impact +1         ## outcome - 0,1,2
-y <- dat$ma + 1             ## outcome - 0,1,2
+y <- dat$impact +1           ## outcome - 0,1,2
+y <- dat$ma + 1              ## outcome - 0,1,2
 
-a <- qlogis(0.3)           ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
+a <- qlogis(0.3)             ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
 b <- 1                       ## prior distribution standard deviation for two events
-c <- qlogis(0.05)          ## prior distribution mean for two events
+c <- qlogis(0.05)            ## prior distribution mean for two events
 d <- 1                       ## prior distribution for standard deviation for two events
 
   dat_C <- list(N = N_C,
