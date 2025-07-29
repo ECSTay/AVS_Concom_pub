@@ -118,3 +118,24 @@ dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 
 write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv", row.names = FALSE)
+###########################
+#looking for dupes in the data
+unique_values <- infant %>%
+     group_by(UID_PERSON) %>%
+     filter(n() == 1) 
+
+duplicate_values <- infant %>%
+  group_by(UID_PERSON) %>%
+  filter(n() > 1) #4499
+
+duplicate_values_2 <- duplicate_values %>%
+  group_by(UID_PERSON) %>%
+  filter(n() < 3) #3508
+
+duplicate_values_3or4 <- duplicate_values %>%
+  group_by(UID_PERSON) %>%
+  filter(n() > 2) #991
+
+> duplicate_values_4 <- infant %>%
+  +     group_by(UID_PERSON) %>%
+  +     filter(n() > 3) #4
