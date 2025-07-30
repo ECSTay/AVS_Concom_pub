@@ -136,6 +136,21 @@ duplicate_values_3or4 <- duplicate_values %>%
   group_by(UID_PERSON) %>%
   filter(n() > 2) #991
 
-> duplicate_values_4 <- infant %>%
-  +     group_by(UID_PERSON) %>%
-  +     filter(n() > 3) #4
+duplicate_values_3 <- duplicate_values_3or4[duplicate_values_3or4$UID_PERSON != "HHS-24064",]
+
+subset_df <- duplicate_values_3[duplicate_values_3$ANY_EVENT == 1, ] #425
+subset_df_3 <- subset_df %>%
+  group_by(UID_PERSON) %>%
+  filter(n() > 2) #156
+
+subset_df_1 <- subset_df %>%
+  group_by(UID_PERSON) %>%
+  filter(n() <2) #95
+
+subset_df_2 <- subset_df %>%
+  group_by(UID_PERSON) %>%
+  filter(n() == 2)
+
+duplicate_values_4 <- infant %>%
+      group_by(UID_PERSON) %>%
+     filter(n() > 3) #4
