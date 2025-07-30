@@ -18,9 +18,9 @@ w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
 x_C <- dat$indig                  ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
 z_C <- dat$pmh                    ## comorbidity
 
-y <- dat$any_event + 1       ## outcome - 0,1,2 
-y <- dat$impact +1           ## outcome - 0,1,2
-y <- dat$ma + 1              ## outcome - 0,1,2
+y <- dat$any_event + 1        ## outcome - 0,1,2 
+y <- dat$impact + 1           ## outcome - 0,1,2
+y <- dat$ma + 1               ## outcome - 0,1,2
 
 a <- qlogis(0.3)             ## prior distribution mean for one event - depends on the schedule and the vaccine strategy?
 b <- 1                       ## prior distribution standard deviation for two events
@@ -67,9 +67,9 @@ summary_fun_C <- function(strat, k, dat){
 }
 
 summary_fun_C("Concomitant", 1, dat_vis_C)
-summary_fun_C("NIP first", 1, dat_vis_C)
-summary_fun_C("NIP first", 2, dat_vis_C)
-summary_fun_C("MenB first", 1, dat_vis_C)
-summary_fun_C("MenB first", 2, dat_vis_C)
+# summary_fun_C("NIP first", 1, dat_vis_C)
+# summary_fun_C("NIP first", 2, dat_vis_C)
+# summary_fun_C("MenB first", 1, dat_vis_C)
+# summary_fun_C("MenB first", 2, dat_vis_C)
 summary_fun_C("Separate", 1, dat_vis_C)
 summary_fun_C("Separate", 2, dat_vis_C)
