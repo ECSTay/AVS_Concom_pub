@@ -92,6 +92,7 @@ table(dat$vax_sequence)
 
 #1    2    3 
 #8738 2208  141 
+
 #exclude Men B first
 
 dat <- dat %>%
@@ -106,6 +107,13 @@ dat$impact <- as.integer(dat$impact)
 table(dat$impact)
 #   0     1     2 
 # 10496   444     6 
+
+dat$medical_attention <- as.integer(dat$medical_attention)
+table(dat$medical_attention)
+
+# 0     1 
+# 10716   230 
+
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
                                                 "6 months" = "3","11" = "4"))
 dat$schedule <- as.integer(dat$schedule)
