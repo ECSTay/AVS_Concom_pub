@@ -76,10 +76,10 @@ dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
 
 dat <- dat[dat$vax_time_diff != "367",] #11087
 
-dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
-dat$group <- as.integer(dat$group)
-
-table(dat$group,dat$schedule)
+# dat$group <- str_replace_all(dat$group, c("Concomitant vaccination" = "1", "Seperate vaccination" = "2"))
+# dat$group <- as.integer(dat$group)
+# 
+# table(dat$group,dat$schedule)
 
 #     1    2    3    4
 # 1 2118 3113 1156 2351
@@ -92,26 +92,33 @@ table(dat$vax_sequence)
 
 #1    2    3 
 #8738 2208  141 
+#exclude Men B first
+
+dat <- dat %>%
+  filter(!(vax_sequence=="3")) #10946
 
 dat$any_event <- as.integer(dat$any_event)
 table(dat$any_event)
-#   0    1    2 
-# 6375 4339  371 
+#  0    1    2 
+# 6305 4301  340 
 
 dat$impact <- as.integer(dat$impact)
 table(dat$impact)
 #   0     1     2 
-# 10632   449     7 
-
+# 10496   444     6 
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
                                                 "6 months" = "3","11" = "4"))
 dat$schedule <- as.integer(dat$schedule)
 table(dat$vax_sequence, dat$schedule)
-
+#OLD - with Men B first data
 #     1    2    3    4
 # 1 2118 3113 1156 2351
 # 2  653  630  242  683
 # 3    0   85    8   48
+
+#    1    2    3    4
+# 1 2118 3113 1156 2351
+# 2  653  630  242  683
 
 dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 dat$sex <- as.numeric(dat$sex)
