@@ -11,21 +11,26 @@ N_C = nrow(dat)                   ## number of responders
 N_strat_C  = 2                    ## number of strategies
 N_sched_C  = 4                    ## number of schedules
 
-s_C <- dat$vax_sequence          ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "NIP first"
-#s_C <- dat$group                  ## vaccine strategy 1 = "Concomitant vaccination", 2 = "Separate"
+s_C <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
+#s_C <- dat$group                 ## vaccine strategy 1 = "Concomitant vaccination", 2 = "Separate"
 t_C <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
-x_C <- dat$indig                  ## Indigenous status -0 = Non-indig, 1 = Aboriginal and Torres Strait Islander
+x_C <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
 z_C <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
-y_C <- dat$any_event + 1      ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
-y_C <- dat$impact + 1           ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-y_C <- dat$ma + 1               ## outcome - 0,1,2 p(1) = 0.02
+y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
+y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
+y_C <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
+y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
+y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
-a <- qlogis(0.49)             ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
-b <- 1                       ## prior distribution standard deviation for two events
-c <- qlogis(0.03)            ## prior distribution mean for two events
-d <- 1                       ## prior distribution for standard deviation for two events
+#a = -3, b = 1  for P(impact), P(MA)
+#a = -1, b = 1  for P(AEFI), P(local), P(fever)
+
+a <- -3                        ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
+b <- 1                         ## prior distribution standard deviation for two events
+c <- -1                        ## prior distribution mean for two events
+d <- 1                         ## prior distribution for standard deviation for two events
 
 dat_C <- list(N = N_C,
                 N_strat = N_strat_C,
@@ -99,3 +104,14 @@ summary_fun_C("Concomitant", 1, dat_vis_C)
 # summary_fun_C("MenB first", 2, dat_vis_C)
 summary_fun_C("Separate", 1, dat_vis_C)
 summary_fun_C("Separate", 2, dat_vis_C)
+
+hist(plogis(rnorm(10000, -2, 1)))
+hist(plogis(rnorm(10000, -3, 1)))
+summary(plogis(rnorm(10000, -3, 1)))
+quantile(plogis(rnorm(10000, -3, 1)), probs = c(0.025, 0.975))
+quantile(plogis(rnorm(10000, -3.5, 1)), probs = c(0.025, 0.975))
+quantile(plogis(rnorm(10000, -4, 1)), probs = c(0.025, 0.975))
+hist(plogis(rnorm(10000, -4, 1)))
+hist(plogis(rnorm(10000, -1, 1)))
+hist(plogis(rnorm(10000, -1, 0.5)))
+
