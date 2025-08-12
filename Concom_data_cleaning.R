@@ -114,8 +114,17 @@ table(dat$medical_attention)
 # 0     1 
 # 10716   230 
 
+dat$local <- as.integer(dat$local)
 table(dat$local)
 
+#  0    1    2 
+# 7743 3000  173 
+
+dat$fever <- as.integer(dat$fever)
+table(dat$fever)
+
+# 0    1    2 
+# 7905 2910  115 
 
 dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "2",
                                                 "6 months" = "3","11" = "4"))
