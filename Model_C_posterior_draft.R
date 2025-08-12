@@ -20,7 +20,7 @@ z_C <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
 y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
 y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-y_C <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
+y_C <- dat$medical_attention + 1                  ## outcome - 0,1,2 p(1) = 0.02
 y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
 y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
@@ -50,10 +50,13 @@ dat_C <- list(N = N_C,
 ##SAP code
 model_C <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_C.stan")
 
-fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) #16 minutes with 100 warmups and 200 draws
+fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) 
 draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
-saveRDS(draws_full, "draws_full_any_event_2025-08-12.rds")
-
+#saveRDS(draws_full, "draws_full_any_event_2025-08-12.rds") # any AE
+saveRDS(draws_full, "draws_full_impact_2025-08-12.rds") # any days of impact
+#saveRDS(draws_full, "draws_full_ma_2025-08-12.rds") # MA
+saveRDS(draws_full, "draws_full_local_2025-08-12.rds") # local reaction
+saveRDS(draws_full, "draws_full_fever_2025-08-12.rds") # fever
 
 ## marginalise
 
@@ -104,6 +107,8 @@ summary_fun_C("Concomitant", 1, dat_vis_C)
 # summary_fun_C("MenB first", 2, dat_vis_C)
 summary_fun_C("Separate", 1, dat_vis_C)
 summary_fun_C("Separate", 2, dat_vis_C)
+
+#####################################
 
 hist(plogis(rnorm(10000, -2, 1)))
 hist(plogis(rnorm(10000, -3, 1)))
