@@ -47,17 +47,41 @@ model_C <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_c
 
 fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) #16 minutes with 100 warmups and 200 draws
 draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
-saveRDS(draws_full, "draws_full_any_event.rds")
-
-draws_C <- as_draws_matrix(fit_C$draws(c("mu")))
-dat_vis_C <- data.frame(x = plogis(as.vector(draws_C)),
-                        strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 4*2),
-                        schedule = rep(c("2 months", "4 months", "6 months", "12 months"), each = 8000*2),
-                        Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
-dat_vis_C <- dat_vis_C[!(dat_vis_C$strategy == "Concomitant" & dat_vis_C$Parameter == "P(k = 2)"),]
+saveRDS(draws_full, "draws_full_any_event_2025-08-12.rds")
 
 
-ggplot(dat_vis_C, aes(x = x, colour = Parameter)) +
+## marginalise
+
+draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
+                    dimnames = list(draw = 1:nrow(draws_full), 
+                                    strategy = c("concom", "separate"), 
+                                    schedule = c("2 months", "4 months", "6 months", "12 months"), 
+                                    parameter = c("one", "two")))
+sex_weight <- mean(dat$sex == 1)
+indig_weight <- mean(dat$indig == 1)
+comorb_weight <- mean(dat$pmh == 1)
+
+
+for(strat in 1:2){
+  for(sched in 1:4){
+    for(par in 1:2){
+      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weight
+      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weight
+      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weight
+      mu_par <- draws_full[,paste0("mu[", strat, ",", sched, ",", par, "]")]
+      draws_marg[, strat, sched, par] <- as.vector(mu_par + sex_par + indig_par + comorb_par)
+    }
+  }
+}
+
+dat_vis <- data.frame(x = plogis(as.vector(draws_marg)),
+                      strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 4*2),
+                      schedule = rep(rep(c("2 months", "4 months", "6 months", "12 months"), each = 8000*2), 2),
+                      Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
+dat_vis <- dat_vis[!(dat_vis$strategy == "Concomitant" & dat_vis$Parameter == "P(k = 2)"),]
+
+
+ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   facet_grid(schedule~strategy) +
   geom_density() +
   scale_colour_manual(values = colours)
