@@ -2,10 +2,13 @@
 library(cmdstanr)
 library(posterior)
 library(ggplot2)
+library(forcats)
 
 
 #load in data
 dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
+
+
 
 N_C = nrow(dat)                   ## number of responders
 N_strat_C  = 2                    ## number of strategies
@@ -18,16 +21,16 @@ w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
 x_C <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
 z_C <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
-y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
+#y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
 y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-y_C <- dat$medical_attention + 1                  ## outcome - 0,1,2 p(1) = 0.02
-y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
-y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
+#y_C <- dat$medical_attention + 1                  ## outcome - 0,1,2 p(1) = 0.02
+#y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
+#y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
 #a = -3, b = 1  for P(impact), P(MA)
 #a = -1, b = 1  for P(AEFI), P(local), P(fever)
 
-a <- -3                        ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
+a <- -3                       ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
 b <- 1                         ## prior distribution standard deviation for two events
 c <- -1                        ## prior distribution mean for two events
 d <- 1                         ## prior distribution for standard deviation for two events
@@ -55,8 +58,8 @@ draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
 #saveRDS(draws_full, "draws_full_any_event_2025-08-12.rds") # any AE
 saveRDS(draws_full, "draws_full_impact_2025-08-12.rds") # any days of impact
 #saveRDS(draws_full, "draws_full_ma_2025-08-12.rds") # MA
-saveRDS(draws_full, "draws_full_local_2025-08-12.rds") # local reaction
-saveRDS(draws_full, "draws_full_fever_2025-08-12.rds") # fever
+#saveRDS(draws_full, "draws_full_local_2025-08-12.rds") # local reaction
+#saveRDS(draws_full, "draws_full_fever_2025-08-12.rds") # fever
 
 ## marginalise
 
@@ -90,9 +93,18 @@ dat_vis <- dat_vis[!(dat_vis$strategy == "Concomitant" & dat_vis$Parameter == "P
 
 
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
-  facet_grid(schedule~strategy) +
+  facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
   geom_density() +
-  scale_colour_manual(values = colours)
+  xlab("Probability") +
+  ylab("Density") +
+  labs(color = NULL) +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
+                      labels = c("One AEFI", "Two AEFI"))
+
+ggsave("AEFI.png", dpi = 400, width = 6, height = 5, units = "in")
+
+
 
 summary_fun_C <- function(strat, k, dat){
   mn <- format(round(mean(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
@@ -100,13 +112,9 @@ summary_fun_C <- function(strat, k, dat){
   paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
 }
 
-summary_fun_C("Concomitant", 1, dat_vis_C)
-# summary_fun_C("NIP first", 1, dat_vis_C)
-# summary_fun_C("NIP first", 2, dat_vis_C)
-# summary_fun_C("MenB first", 1, dat_vis_C)
-# summary_fun_C("MenB first", 2, dat_vis_C)
-summary_fun_C("Separate", 1, dat_vis_C)
-summary_fun_C("Separate", 2, dat_vis_C)
+summary_fun_C("Concomitant", 1, dat_vis)
+summary_fun_C("Separate", 1, dat_vis)
+summary_fun_C("Separate", 2, dat_vis)
 
 #####################################
 
