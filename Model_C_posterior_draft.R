@@ -155,23 +155,19 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
 
 ggsave("Impact.png", dpi = 400, width = 6, height = 5, units = "in")
 
-results <- c()
 
-for (sch in 1:schedules)
-
-summary_fun_C <- function(strat, k, dat){
-  mn <- format(round(mean(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
-  cr <- format(round(quantile(dat[dat$strategy == strat & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
+summary_fun_C <- function(strat, sch, k, dat){
+  mn <- format(round(mean(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
+  cr <- format(round(quantile(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
   paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
 }
 
 
-results <- c()
+results <- list()
 schedules <- c("2 months","4 months", "6 months", "12 months")
 
-for (sch in 1:schedules) {
-  results <- summary_fun_C("Concomitant", 1, dat_vis)
-  results
+for (sch in schedules) {
+  results[sch] <- summary_fun_C("Concomitant", sch, 1, dat_vis)
 }
 
 summary_fun_C("Concomitant", 1, dat_vis)
