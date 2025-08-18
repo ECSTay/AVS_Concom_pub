@@ -155,6 +155,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
 
 ggsave("Impact.png", dpi = 400, width = 6, height = 5, units = "in")
 
+## probabilities and 95% credible intervals by schedule
 
 summary_fun_C <- function(strat, sch, k, dat){
   mn <- format(round(mean(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
@@ -162,13 +163,29 @@ summary_fun_C <- function(strat, sch, k, dat){
   paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
 }
 
-
 results <- list()
+results1 <- list()
+results2 <- list()
 schedules <- c("2 months","4 months", "6 months", "12 months")
 
 for (sch in schedules) {
   results[sch] <- summary_fun_C("Concomitant", sch, 1, dat_vis)
+  results1[sch] <- summary_fun_C("Separate", sch, 1, dat_vis)
+  results2[sch] <- summary_fun_C("Separate", sch, 2, dat_vis)
 }
+print(results)
+print(results1)
+print(results2)
+
+
+summary_fun_C <- function(strat, sch, k, dat){
+  mn <- format(round(mean(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
+  cr <- format(round(quantile(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
+  
+  paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
+}
+
+
 
 summary_fun_C("Concomitant", 1, dat_vis)
 summary_fun_C("Separate", 1, dat_vis)
