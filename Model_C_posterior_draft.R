@@ -61,7 +61,8 @@ saveRDS(draws_full, "draws_full_impact_2025-08-12.rds") # any days of impact
 #saveRDS(draws_full, "draws_full_local_2025-08-12.rds") # local reaction
 #saveRDS(draws_full, "draws_full_fever_2025-08-12.rds") # fever
 
-## marginalise
+#load in the relevant draws_full
+## marginalise - using option b) - 2.	The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
 
 draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
                     dimnames = list(draw = 1:nrow(draws_full), 
@@ -91,7 +92,7 @@ dat_vis <- data.frame(x = plogis(as.vector(draws_marg)),
                       Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
 dat_vis <- dat_vis[!(dat_vis$strategy == "Concomitant" & dat_vis$Parameter == "P(k = 2)"),]
 
-
+#AEFI
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
   geom_density() +
@@ -103,6 +104,56 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
                       labels = c("One AEFI", "Two AEFI"))
 
 ggsave("AEFI.png", dpi = 400, width = 6, height = 5, units = "in")
+
+#local reaction
+
+ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+  facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
+  geom_density() +
+  xlab("Probability") +
+  ylab("Density") +
+  labs(color = NULL) +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
+                      labels = c("One local reaction", "Two local reactions"))
+
+ggsave("Local.png", dpi = 400, width = 6, height = 5, units = "in")
+#fever
+ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+  facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
+  geom_density() +
+  xlab("Probability") +
+  ylab("Density") +
+  labs(color = NULL) +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
+                      labels = c("One report of fever", "Two reports of fever"))
+
+ggsave("Fever.png", dpi = 400, width = 6, height = 5, units = "in")
+#MA
+ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+  facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
+  geom_density() +
+  xlab("Probability") +
+  ylab("Density") +
+  labs(color = NULL) +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
+                      labels = c("One report of MA", "Two reports of MA"))
+
+ggsave("MA.png", dpi = 400, width = 6, height = 5, units = "in")
+#impact
+ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+  facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
+  geom_density() +
+  xlab("Probability") +
+  ylab("Density") +
+  labs(color = NULL) +
+  theme(legend.position = "bottom") +
+  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
+                      labels = c("One report of carer impact", "Two reports of carer impact"))
+
+ggsave("Impact.png", dpi = 400, width = 6, height = 5, units = "in")
 
 
 
