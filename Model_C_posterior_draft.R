@@ -115,9 +115,9 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   labs(color = NULL) +
   theme(legend.position = "bottom") +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
-                      labels = c("One local reaction", "Two local reactions"))
+                      labels = c("One report of local reaction", "Two reports of local reactions"))
 
-ggsave("Local.png", dpi = 400, width = 6, height = 5, units = "in")
+ggsave("Local_2.png", dpi = 400, width = 6, height = 5, units = "in")
 #fever
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
@@ -129,7 +129,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
                       labels = c("One report of fever", "Two reports of fever"))
 
-ggsave("Fever.png", dpi = 400, width = 6, height = 5, units = "in")
+ggsave("Fever_2.png", dpi = 400, width = 6, height = 5, units = "in")
 #MA
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
@@ -153,7 +153,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
                       labels = c("One report of carer impact", "Two reports of carer impact"))
 
-ggsave("Impact.png", dpi = 400, width = 6, height = 5, units = "in")
+ggsave("Impact_2.png", dpi = 400, width = 6, height = 5, units = "in")
 
 ## probabilities and 95% credible intervals by schedule
 
