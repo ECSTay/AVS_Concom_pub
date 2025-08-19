@@ -3,10 +3,11 @@ library(cmdstanr)
 library(posterior)
 library(ggplot2)
 library(forcats)
+library(data.table)
 
 
 #load in data
-dat <- read.csv(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
+dat <- fread(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
 
 
 
@@ -69,28 +70,27 @@ draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2),
                                     strategy = c("concom", "separate"), 
                                     schedule = c("2 months", "4 months", "6 months", "12 months"), 
                                     parameter = c("one", "two")))
-sex_weight <- mean(dat$sex == 1)
-indig_weight <- mean(dat$indig == 1)
-comorb_weight <- mean(dat$pmh == 1)
-
+sex_weights <- dat[, .(mn = mean(sex)), by = schedule]
+indig_weights <- dat[, .(mn = mean(indig)), by = schedule]
+comorb_weights <- dat[, .(mn = mean(pmh)), by = schedule]
 
 for(strat in 1:2){
   for(sched in 1:4){
     for(par in 1:2){
-      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weight
-      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weight
-      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weight
+      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
       mu_par <- draws_full[,paste0("mu[", strat, ",", sched, ",", par, "]")]
       draws_marg[, strat, sched, par] <- as.vector(mu_par + sex_par + indig_par + comorb_par)
     }
   }
 }
 
-dat_vis <- data.frame(x = plogis(as.vector(draws_marg)),
+dat_vis <- data.table(x = plogis(as.vector(draws_marg)),
                       strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 4*2),
                       schedule = rep(rep(c("2 months", "4 months", "6 months", "12 months"), each = 8000*2), 2),
                       Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
-dat_vis <- dat_vis[!(dat_vis$strategy == "Concomitant" & dat_vis$Parameter == "P(k = 2)"),]
+dat_vis <- dat_vis[!(strategy == "Concomitant" & Parameter == "P(k = 2)")]
 
 #AEFI
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
@@ -103,7 +103,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
                       labels = c("One AEFI", "Two AEFI"))
 
-ggsave("AEFI.png", dpi = 400, width = 6, height = 5, units = "in")
+ggsave("AEFI_2.png", dpi = 400, width = 6, height = 5, units = "in")
 
 #local reaction
 
@@ -141,7 +141,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
                       labels = c("One report of MA", "Two reports of MA"))
 
-ggsave("MA.png", dpi = 400, width = 6, height = 5, units = "in")
+ggsave("MA_2.png", dpi = 400, width = 6, height = 5, units = "in")
 #impact
 ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   facet_grid(forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")~strategy) +
@@ -157,34 +157,38 @@ ggsave("Impact.png", dpi = 400, width = 6, height = 5, units = "in")
 
 ## probabilities and 95% credible intervals by schedule
 
-summary_fun_C <- function(strat, sch, k, dat){
-  mn <- format(round(mean(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
-  cr <- format(round(quantile(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
-  paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
+summary_fun_C <- function(strat, sch, dat_vis){
+  if(strat == "Concomitant"){
+    dist <- dat_vis[strategy == "Concomitant" & schedule == sch & Parameter == "P(k = 1)",]$x
+    mn <- format(round(mean(dist), 2), nsmall = 2)
+    cr <- format(round(quantile(dist, c(0.025, 0.975)), 2), nsmall = 2)
+    paste0("Concomitant strategy P(k = 1): ", mn, " (", cr[1], ", ", cr[2], ")")
+  } else {
+    dist1 <- dat_vis[strategy == "Separate" & schedule == sch & Parameter == "P(k = 1)",]$x
+    dist2 <- dat_vis[strategy == "Separate" & schedule == sch & Parameter == "P(k = 2)",]$x
+    dist_atleast <- dat_vis[strategy == "Separate" & schedule == sch & Parameter == "P(k = 1)",]$x + dat_vis[strategy == "Separate" & schedule == sch & Parameter == "P(k = 2)",]$x
+    mn1 <- format(round(mean(dist1), 2), nsmall = 2)
+    cr1 <- format(round(quantile(dist1, c(0.025, 0.975)), 2), nsmall = 2)
+    mn2 <- format(round(mean(dist2), 2), nsmall = 2)
+    cr2 <- format(round(quantile(dist2, c(0.025, 0.975)), 2), nsmall = 2)
+    mn_atleast <- format(round(mean(dist_atleast), 2), nsmall = 2)
+    cr_atleast <- format(round(quantile(dist_atleast, c(0.025, 0.975)), 2), nsmall = 2)
+    paste0("Separate strategy P(k = 1): ", mn1, " (", cr1[1], ", ", cr1[2], ") ",
+           "Separate strategy P(k = 2): ", mn2, " (", cr2[1], ", ", cr2[2], ") ",
+           "Separate strategy P(k >= 1): ", mn_atleast, " (", cr_atleast[1], ", ", cr_atleast[2], ")")
+  }
 }
 
-results <- list()
 results1 <- list()
 results2 <- list()
 schedules <- c("2 months","4 months", "6 months", "12 months")
 
 for (sch in schedules) {
-  results[sch] <- summary_fun_C("Concomitant", sch, 1, dat_vis)
-  results1[sch] <- summary_fun_C("Separate", sch, 1, dat_vis)
-  results2[sch] <- summary_fun_C("Separate", sch, 2, dat_vis)
+  results1[sch] <- summary_fun_C("Concomitant", sch, dat_vis)
+  results2[sch] <- summary_fun_C("Separate", sch, dat_vis)
 }
-print(results)
 print(results1)
 print(results2)
-
-
-summary_fun_C <- function(strat, sch, k, dat){
-  mn <- format(round(mean(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x), 2), nsmall = 2)
-  cr <- format(round(quantile(dat[dat$strategy == strat & dat$schedule == sch & dat$Parameter == paste0("P(k = ", k, ")"),]$x, c(0.025, 0.975)), 2), nsmall = 2)
-  
-  paste0(strat, " strategy P(k = ", k, "): ", mn, " (", cr[1], ", ", cr[2], ")")
-}
-
 
 
 summary_fun_C("Concomitant", 1, dat_vis)
