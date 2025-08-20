@@ -101,7 +101,7 @@ ggplot(dat_vis, aes(x = x, colour = Parameter)) +
   labs(color = NULL) +
   theme(legend.position = "bottom") +
   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k = 2)" = "#009E73"),
-                      labels = c("One AEFI", "Two AEFI"))
+                      labels = c("One report of AEFI", "Two reports of AEFI"))
 
 ggsave("AEFI_2.png", dpi = 400, width = 6, height = 5, units = "in")
 
