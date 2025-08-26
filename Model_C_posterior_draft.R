@@ -98,7 +98,6 @@ dat_vis <- dcast.data.table(dat_vis, samp + strategy + schedule ~ Parameter, val
 dat_vis$"P(k >= 1)" <- dat_vis$'P(k = 1)' + dat_vis$'P(k = 2)'
 dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = c('P(k = 1)', 'P(k = 2)', 'P(k >= 1)'), variable.name = 'Parameter', value.name = 'x')
 dat_vis <- dat_vis[!(strategy == 'Concomitant' & Parameter %in% c('P(k = 2)', 'P(k >= 1)'))]
-
 dat_vis <- dat_vis[!(strategy == 'Separate' & Parameter %in% c('P(k = 1)', 'P(k = 2)'))]
 
 
