@@ -1,7 +1,7 @@
 
 ##########################################
 
-#MOdel C data sim from SAP
+#Model C data sim from SAP
 N_C <- 1000
 N_strat_C <- 2
 N_sched_C <- 1
@@ -59,7 +59,7 @@ library(stringr)
 library(data.table)
 library(here)
 
-load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_updated.rda")#connect to USyd RDS)
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_MA.rda")#connect to USyd RDS)
 str(infant)
 
 dat <- as.data.table(infant)
@@ -70,9 +70,19 @@ dat <- dat[!(is.na(any_event)) &
              !(is.na(atsi)) &
              !(is.na(sex)) & 
              !(is.na(group)) &
+             !(is.na(clinic_state)) &
+             !(is.na(clinic_type)) &
              #!is.na(fever)) & 4 records missing a value for fever
              !(is.na(pmh)), ]#11088
 dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
+
+table(dat$clinic_state)
+# ACT  NSW   NT  QLD   SA  TAS  VIC   WA 
+# 702 3212   24 3163 1785  219 1000  996
+
+table(dat$clinic_type)
+# Aboriginal Health Service          General Practice              State Health 
+#              214                     10419                       468 
 
 dat <- dat[dat$vax_time_diff != "367",] #11087
 
@@ -146,9 +156,27 @@ dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 
-write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv", row.names = FALSE)
+##clinic state - replace the names with numbers
+
+##clinic type - replace the names with numbers
+
+write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv", row.names = FALSE)
 ###########################
 #looking for dupes in the data
+table(table(infant$UID_PERSON))
+
+1    2    3    4 
+6602 1754  329    1 
+# include these numbers - one line in the results who contributed data to 1,2,3,4 schedule points..
+# 1 person responded 4 times...so ~ 8500 unique people
+
+table(table(infant[infant$SCHEDULE == "2 months",]$UID_PERSON))
+
+
+
+
+
+##################################
 unique_values <- infant %>%
      group_by(UID_PERSON) %>%
      filter(n() == 1) 
