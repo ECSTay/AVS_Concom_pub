@@ -39,6 +39,7 @@ c <- qlogis(0.05)
 dat_C <- list(N = N_C,
               N_strat = N_strat_C,
               N_sched = N_sched_C,
+              N_clinic = N_clinic,
               s = s_C, #strategy/vax seqeunce - int
               t = t_C, #schedule - int
               w = w_C, #sex
@@ -59,7 +60,7 @@ library(stringr)
 library(data.table)
 library(here)
 
-load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_MA.rda")#connect to USyd RDS)
+load("Z:/Analyses/Concomitant vaccination/Infant_NIP_MenB_concom_modelling_MA added.rda")#connect to USyd RDS)
 str(infant)
 
 dat <- as.data.table(infant)
@@ -104,9 +105,9 @@ table(dat$vax_sequence)
 #8738 2208  141 
 
 #exclude Men B first
-
 dat <- dat %>%
   filter(!(vax_sequence=="3")) #10946
+#s <- dat$vax_sequence 
 
 dat$any_event <- as.integer(dat$any_event)
 table(dat$any_event)
@@ -118,11 +119,19 @@ table(dat$impact)
 #   0     1     2 
 # 10496   444     6 
 
-dat$medical_attention <- as.integer(dat$medical_attention)
-table(dat$medical_attention)
+dat$ma <- as.integer(dat$ma)
+table(dat$ma)
+
+# 0     1     2 
+# 10541   401     4 
+
+dat <- dat %>%
+  mutate(ma = case_when(ma == "2" ~ 1, .default = ma))
+
+table(dat$ma)
 
 # 0     1 
-# 10716   230 
+# 10541   405 
 
 dat$local <- as.integer(dat$local)
 dat$local[is.na(dat$local)] <- 0
@@ -142,11 +151,7 @@ dat$schedule <- str_replace_all(dat$schedule, c("2 months" = "1", "4 months" = "
                                                 "6 months" = "3","11" = "4"))
 dat$schedule <- as.integer(dat$schedule)
 table(dat$vax_sequence, dat$schedule)
-#OLD - with Men B first data
-#     1    2    3    4
-# 1 2118 3113 1156 2351
-# 2  653  630  242  683
-# 3    0   85    8   48
+
 
 #    1    2    3    4
 # 1 2118 3113 1156 2351
@@ -156,12 +161,18 @@ dat$sex <- str_replace_all(dat$sex, c("Female" = "1", "Male" = "0"))
 dat$sex <- as.numeric(dat$sex)
 setnames(dat, "atsi", "indig")
 
-##clinic state - replace the names with numbers
+##clinic state 
+# ACT  NSW   NT  QLD   SA  TAS  VIC   WA 
+# 688 3162   24 3129 1783  216  977  967 
 
-##clinic type - replace the names with numbers
+##clinic type 
+# Aboriginal Health Service          General Practice              State Health 
+# 214                     10265                       467 
 
-write.csv(dat, file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/dat_modelC.csv", row.names = FALSE)
-###########################
+
+###########################################################################
+write.csv(dat, file = "C:/Users/ETay/Documents/NIP_MenB_dat.csv", row.names = FALSE)
+###########################################################################
 #looking for dupes in the data
 table(table(infant$UID_PERSON))
 
@@ -171,9 +182,6 @@ table(table(infant$UID_PERSON))
 # 1 person responded 4 times...so ~ 8500 unique people
 
 table(table(infant[infant$SCHEDULE == "2 months",]$UID_PERSON))
-
-
-
 
 
 ##################################
@@ -211,3 +219,22 @@ subset_df_2 <- subset_df %>%
 duplicate_values_4 <- infant %>%
       group_by(UID_PERSON) %>%
      filter(n() > 3) #4
+#####################
+# q[1:10,]
+# [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+# [1,]    0    0    1    0    0    0    0
+# [2,]    0    0    1    0    0    0    0
+# [3,]    0    0    1    0    0    0    0
+# [4,]    0    0    1    0    0    0    0
+# [5,]    0    0    1    0    0    0    0
+# [6,]    0    0    1    0    0    0    0
+# [7,]    0    0    1    0    0    0    0
+# [8,]    0    0    1    0    0    0    0
+# [9,]    0    0    1    0    0    0    0
+# [10,]    0    0    1    0    0    0    0
+# colSums(q)
+# [1]  688   24 3129 1783  216  977  967
+# table(rowSums(q))
+# 
+# 0    1 
+# 3162 7784 
