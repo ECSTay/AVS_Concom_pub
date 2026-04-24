@@ -10,55 +10,76 @@ library(data.table)
 dat <- fread(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
 dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
 
-N_r <- dat[,.N]                                            ## number of responses
-N_C <- dat[,length(unique(dat$uid_person))]                ## number of unique respondents
+N_R <- dat[,.N]                                            ## number of responses
+N_I <- dat[,length(unique(dat$uid_person))]                ## number of unique respondents
 
+N_strat  = 2                    ## number of strategies
+N_sched  = 4                    ## number of schedules
+N_state  = 7                    
+N_clinic = 2
 
-N_C = nrow(dat)                   ## number of responders
-N_strat_C  = 2                    ## number of strategies
-N_sched_C  = 4                    ## number of schedules
+infant <- dat$res
 
-s_C <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
-t_C <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
-w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
-x_C <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
-q_C <- dat$clinic_state           ## NSW = 0, ACT = 1, NT = 2, QLD = 3, SA = 4, TAS = 5, VIC = 6, WA = 7
-c_C <- dat$clinic_type            ## AHS = 0, GP = 1, STATE = 2
-z_C <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
+s <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
+t <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
+w <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
+x <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
 
-#y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
-y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-#y_C <- dat$medical_attention + 1                  ## outcome - 0,1,2 p(1) = 0.02
+q <- cbind(as.integer(dat$clinic_state == "ACT"),
+as.integer(dat$clinic_state == "NT"),
+as.integer(dat$clinic_state == "QLD"),
+as.integer(dat$clinic_state == "SA"),
+as.integer(dat$clinic_state == "TAS"),
+as.integer(dat$clinic_state == "VIC"),
+as.integer(dat$clinic_state == "WA"))
+
+c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
+           as.integer(dat$clinic_type == "State Health"))
+
+z <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
+
+y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
+#y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
+#y_C <- dat$mna + 1                  ## outcome - 0,1,2 p(1) = 0.02
 #y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
 #y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
 #a = -3, b = 1  for P(impact), P(MA)
 #a = -1, b = 1  for P(AEFI), P(local), P(fever)
 
-a <- -3                       ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
-b <- 1                         ## prior distribution standard deviation for two events
-c <- -1                        ## prior distribution mean for two events
-d <- 1                         ## prior distribution for standard deviation for two events
+# a <- -3                       ## prior distribution mean for one event - depends on the schedule and the vaccine strategy
+# b <- 1                         ## prior distribution standard deviation for two events
+# c <- -1                        ## prior distribution mean for two events
+# d <- 1                         ## prior distribution for standard deviation for two events
 
-dat_C <- list(N = N_C,#N_r
-                N_strat = N_strat_C,
-                N_sched = N_sched_C,
-                s = s_C,
-                t = t_C,
-                w = w_C,
-                x = x_C,
-                q = q_C,
-                c = c_C,
-                z = z_C,
-                y = y_C,
-                a = a,
-                b = b,
-                c = c,
-                d = d)
+dat_C <- list(N_R = N_R,
+              N_I = N_I,
+              N_strat = N_strat,
+              N_sched = N_sched,
+              N_state = N_state,
+              N_clinic = N_clinic,
+              infant = infant,
+              s = s,
+              t = t,
+              w = w,
+              x = x,
+              q = q,
+              c = c,
+              z = z,
+              y = y)
+                # a = a,
+                # b = b,
+                # c = c,
+                # d = d)
 
 
 ##SAP code
-model_C <- cmdstan_model("C:/Users/etay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/model_C.stan")
+model_C <- cmdstan_model("C:/Users/ETay/Documents/Work documents/NIP_MenB revisions/Concom_new_model.stan")
+
+time_start <- Sys.time()
+fit_C <- model_C$sample(dat_C, chains = 4, parallel_chains = 4) 
+time_finish <- Sys.time() - time_start
+
 
 fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) 
 draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
