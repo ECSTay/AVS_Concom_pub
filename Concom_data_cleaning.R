@@ -107,6 +107,9 @@ table(dat$vax_sequence)
 #exclude Men B first
 dat <- dat %>%
   filter(!(vax_sequence=="3")) #10946
+
+# 1    2 
+# 8738 2208 
 #s <- dat$vax_sequence 
 
 dat$any_event <- as.integer(dat$any_event)
