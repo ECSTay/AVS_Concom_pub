@@ -7,7 +7,7 @@ library(data.table)
 
 
 #load in data
-dat <- fread(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
+dat <- fread(file = "C:/Users/ETay/Documents/NIP_MenB_dat.csv")
 dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
 
 N_R <- dat[,.N]                                            ## number of responses
