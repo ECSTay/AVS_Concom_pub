@@ -8,7 +8,10 @@ library(data.table)
 
 #load in data
 dat <- fread(file = "C:/Users/ETay/Documents/Work documents/AVS work/Thuy_concom/AVS_Concom_pub/dat_modelC.csv")
+dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
 
+N_r <- dat[,.N]                                            ## number of responses
+N_C <- dat[,length(unique(dat$uid_person))]                ## number of unique respondents
 
 
 N_C = nrow(dat)                   ## number of responders
@@ -16,10 +19,11 @@ N_strat_C  = 2                    ## number of strategies
 N_sched_C  = 4                    ## number of schedules
 
 s_C <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
-#s_C <- dat$group                 ## vaccine strategy 1 = "Concomitant vaccination", 2 = "Separate"
 t_C <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w_C <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
 x_C <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
+q_C <- dat$clinic_state           ## NSW = 0, ACT = 1, NT = 2, QLD = 3, SA = 4, TAS = 5, VIC = 6, WA = 7
+c_C <- dat$clinic_type            ## AHS = 0, GP = 1, STATE = 2
 z_C <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
 #y_C <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
@@ -36,13 +40,15 @@ b <- 1                         ## prior distribution standard deviation for two 
 c <- -1                        ## prior distribution mean for two events
 d <- 1                         ## prior distribution for standard deviation for two events
 
-dat_C <- list(N = N_C,
+dat_C <- list(N = N_C,#N_r
                 N_strat = N_strat_C,
                 N_sched = N_sched_C,
                 s = s_C,
                 t = t_C,
                 w = w_C,
                 x = x_C,
+                q = q_C,
+                c = c_C,
                 z = z_C,
                 y = y_C,
                 a = a,
