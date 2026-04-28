@@ -39,11 +39,11 @@ c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
 
 z <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
-y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
-#y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-#y_C <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
-#y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
-#y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
+#y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
+#y <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
+#y <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
+y <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
+#y <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
 #a = -3, b = 1  for P(impact), P(MA)
 #a = -1, b = 1  for P(AEFI), P(local), P(fever)
@@ -73,7 +73,10 @@ dat_C <- list(N_R = N_R,
                 # c = c,
                 # d = d)
 
-
+saveRDS(dat_C, file = "C:/Users/ETay/Documents/dat_C_AEFI.rds")
+saveRDS(dat_C, file = "C:/Users/ETay/Documents/dat_C_impact.rds")
+saveRDS(dat_C, file = "C:/Users/ETay/Documents/dat_C_ma.rds")
+saveRDS(dat_C, file = "C:/Users/ETay/Documents/dat_C_local.rds")
 ##SAP code
 model_C <- cmdstan_model("C:/Users/ETay/Documents/Work documents/NIP_MenB revisions/Concom_new_model.stan")
 
