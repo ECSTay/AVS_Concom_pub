@@ -75,15 +75,53 @@ dat <- dat[!(is.na(any_event)) &
              !(is.na(clinic_type)) &
              #!is.na(fever)) & 4 records missing a value for fever
              !(is.na(pmh)), ]#11088
+####looking for missingness
+missing_sex <- sum(is.na(dat$sex))#6
+perc_missing_sex <- mean(is.na(dat$sex))*100#0.054
+# Print result
+cat("Percentage of missing values in 'sex':", perc_missing_sex, "\n")
+
+missing_indig <- sum(is.na(dat$atsi))#7
+perc_missing_atsi <- mean(is.na(dat$atsi))*100#0.063
+# Print result
+cat("Percentage of missing values in 'indig':", perc_missing_atsi, "\n")
+
+missing_AEFI <- sum(is.na(dat$any_event))#0
+missing_AEFI
+perc_missing_any_event <- mean(is.na(dat$any_event))*100#0
+# Print result
+cat("Percentage of missing values in 'AEFI':", perc_missing_any_event, "\n")
+
+missing_state <- sum(is.na(dat$clinic_state))#0
+missing_state
+perc_missing_state <- mean(is.na(dat$clinic_state))*100#0
+# Print result
+cat("Percentage of missing values in 'state':", perc_missing_state, "\n")
+
+missing_ma <- sum(is.na(dat$ma))#0
+missing_ma
+perc_missing_ma <- mean(is.na(dat$ma))*100#0
+# Print result
+cat("Percentage of missing values in 'state':", perc_missing_ma, "\n")
+
+
+missing_group <- sum(is.na(dat$group))#0
+missing_group
+perc_missing_group <- mean(is.na(dat$group))*100#0
+# Print result
+cat("Percentage of missing values in 'state':", perc_missing_group, "\n")
+
+
+
 dat$vax_time_diff[is.na(dat$vax_time_diff)] <- 0
 
 table(dat$clinic_state)
 # ACT  NSW   NT  QLD   SA  TAS  VIC   WA 
-# 702 3212   24 3163 1785  219 1000  996
+# 701 3207  24 31503 1783  219 1000  995
 
 table(dat$clinic_type)
 # Aboriginal Health Service          General Practice              State Health 
-#              214                     10419                       468 
+#              214                     10406                   468 
 
 dat <- dat[dat$vax_time_diff != "367",] #11087
 

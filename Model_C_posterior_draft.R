@@ -4,12 +4,13 @@ library(posterior)
 library(ggplot2)
 library(forcats)
 library(data.table)
-
+library(bayesplot)
 
 #load in data
 dat <- fread(file = "C:/Users/ETay/Documents/NIP_MenB_dat.csv")
 dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
-
+dat$vax_sequence[dat$vax_sequence == "2"] <- 0
+dat$vax_sequence <- as.integer(dat$vax_sequence)
 N_R <- dat[,.N]                                            ## number of responses
 N_I <- dat[,length(unique(dat$uid_person))]                ## number of unique respondents
 
@@ -20,7 +21,7 @@ N_clinic = 2
 
 infant <- dat$res
 
-s <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination", 2 = "Separate"
+s <- dat$vax_sequence           ## vaccine strategy, 1 = "Concomitant vaccination" --->1, 2 = "Separate" --->0
 t <- dat$sched                  ## schedule - 1 = 2 months, 2 = 4 months, 3 = 6 months, 4 = 12 months
 w <- dat$sex                    ## sex - 0 = "Male", 1 = "Female"
 x <- dat$indig                  ## Indigenous status - 0 = Non-Indig, 1 = Aboriginal and Torres Strait Islander
@@ -40,7 +41,7 @@ z <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
 y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
 #y_C <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-#y_C <- dat$mna + 1                  ## outcome - 0,1,2 p(1) = 0.02
+#y_C <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
 #y_C <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
 #y_C <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
@@ -77,24 +78,31 @@ dat_C <- list(N_R = N_R,
 model_C <- cmdstan_model("C:/Users/ETay/Documents/Work documents/NIP_MenB revisions/Concom_new_model.stan")
 
 time_start <- Sys.time()
-fit_C <- model_C$sample(dat_C, chains = 4, parallel_chains = 4) 
+#fit_C <- model_C$sample(dat_C, chains = 2, parallel_chains = 2) #43.3 minutes
+fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) 
 time_finish <- Sys.time() - time_start
 
+postr <-fit_C$draws()
 
-fit_C <- model_C$sample(dat_C, chains = 8, parallel_chains = 8) 
-draws_full <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "delta")))
-#saveRDS(draws_full, "draws_full_any_event_2025-08-12.rds") # any AE
-saveRDS(draws_full, "draws_full_impact_2025-08-12.rds") # any days of impact
-#saveRDS(draws_full, "draws_full_ma_2025-08-12.rds") # MA
-#saveRDS(draws_full, "draws_full_local_2025-08-12.rds") # local reaction
-#saveRDS(draws_full, "draws_full_fever_2025-08-12.rds") # fever
+saveRDS(fit_C, file = "fit_concom_AEFI_test.rds")
+saveRDS(postr, file = "postr_concom_AEFI_test.rds")
 
-#load in the relevant draws_full
-## marginalise - using option b) - 2.	The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
 
-draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
-                    dimnames = list(draw = 1:nrow(draws_full), 
-                                    strategy = c("concom", "separate"), 
+saveRDS(postr, "postr_concom_AEFI.rds") # any AE
+#saveRDS(postr, "postr_concom_impact.rds") # any days of impact
+#saveRDS(postr, "postr_concom_ma.rds") # MA
+#saveRDS(postr, "postr_concom_local.rds") # local reaction
+#saveRDS(postr, "postr_concom_fever.rds") # fever
+###########################################################################################
+#load in the relevant postr
+## marginalise - using option b) The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
+
+postr <- posterior::as_draws_matrix(postr)
+postr <- as_draws_matrix(fit_C$draws(c("mu", "beta", "gamma", "rho", "tau","delta")))
+
+draws_marg <- array(NA, dim = c(nrow(postr), 2, 4, 2), 
+                    dimnames = list(draw = 1:nrow(postr), 
+                                    strategy = c("separate", "concom"), 
                                     schedule = c("2 months", "4 months", "6 months", "12 months"), 
                                     parameter = c("one", "two")))
 sex_weights <- dat[, .(mn = mean(sex)), by = schedule]
@@ -104,10 +112,10 @@ comorb_weights <- dat[, .(mn = mean(pmh)), by = schedule]
 for(strat in 1:2){
   for(sched in 1:4){
     for(par in 1:2){
-      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
-      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
-      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
-      mu_par <- draws_full[,paste0("mu[", strat, ",", sched, ",", par, "]")]
+      sex_par <- postr[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+      indig_par <- postr[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+      comorb_par <- postr[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
+      mu_par <- postr[,paste0("mu[", strat, ",", sched, ",", par, "]")]
       draws_marg[, strat, sched, par] <- as.vector(mu_par + sex_par + indig_par + comorb_par)
     }
   }
@@ -269,3 +277,36 @@ strategy <- rep("Separate",32000)
 schedule <- c(rep("2 months",8000), rep("4 months", 8000), rep("6 months", 8000), rep ("12 months", 8000))
 Parameter <- rep("P(>= 1)")
 dat_vis_sub <- data.frame(x = atleastone, )
+
+######Diagnostic - to be included in the code to the thinkstation
+
+
+postr <- fit_C$draws()
+postr <- posterior::as_draws_matrix(fit_C$draws())
+pars <- colnames(postr)[str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")]
+
+bayesplot::mcmc_neff_hist(neff_ratio(fit, pars = pars)) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),  # plot area
+    plot.background  = element_rect(fill = "white", color = NA)       # outer background
+  )
+ggplot2::ggsave("Arthralgia_flu_6m_neff_ratio.png", dpi = 400, width = 8, height = 9, units = "in")
+bayesplot::mcmc_rhat_hist(rhat(fit, pars = pars)) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),  # plot area
+    plot.background  = element_rect(fill = "white", color = NA)       # outer background
+  )
+ggplot2::ggsave("Arthralgia_flu_6m_rhat.png", dpi = 400, width = 8, height = 9, units = "in")
+bayesplot::mcmc_trace(postr, pars = sample(pars, size = 20)) +
+  theme(
+    panel.background = element_rect(fill = "white", color = NA),  # plot area
+    plot.background  = element_rect(fill = "white", color = NA)       # outer background
+  )
+ggplot2::ggsave("Arthralgia_flu_6m_trace.png", dpi = 400, width = 8, height = 9, units = "in")
+
+postr <- postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")]
+
+saveRDS(postr, file = "postr_6m_flu_arthralgia.rds")
+
+
+
