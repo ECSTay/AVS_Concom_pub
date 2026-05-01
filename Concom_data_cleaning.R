@@ -172,7 +172,7 @@ dat <- dat %>%
 table(dat$ma)
 
 # 0     1 
-# 10541   405 
+# 10541   405
 
 dat$local <- as.integer(dat$local)
 dat$local[is.na(dat$local)] <- 0
