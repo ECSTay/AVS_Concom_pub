@@ -2,7 +2,7 @@
 
 #load in the relevant posterior
 
-draws_full <- postr <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom_AEFI.rds"))
+draws_full <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom_AEFI.rds"))
 #marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
 
 draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
