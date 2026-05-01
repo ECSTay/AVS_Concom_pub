@@ -1,8 +1,8 @@
-###Visualising and tabulating the posteriors
+###Visualising and tabulating the posteriors - marginalised estimates
 
 #load in the relevant posterior
 
-draws_full <- 
+draws_full <- postr <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom_AEFI.rds"))
 #marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
 
 draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
@@ -12,6 +12,8 @@ draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2),
                                     parameter = c("one", "two")))
 sex_weights <- dat[, .(mn = mean(sex)), by = schedule]
 indig_weights <- dat[, .(mn = mean(indig)), by = schedule]
+state_weights <- dat[, .(mn = mean(clinic_state)), by = schedule]
+clinic_weights <- dat[, .(mn = mean(clinic_type)), by = schedule]
 comorb_weights <- dat[, .(mn = mean(pmh)), by = schedule]
 
 for(strat in 1:2){
@@ -19,6 +21,8 @@ for(strat in 1:2){
     for(par in 1:2){
       sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
       indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+      state_par <- draws_full[,paste0("rho[", par, "]")]*state_weights[schedule == sched]$mn
+      clinic_par <- draws_full[,paste0("tau[", par, "]")]*clinic_weights[schedule == sched]$mn
       comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
       mu_par <- draws_full[,paste0("mu[", strat, ",", sched, ",", par, "]")]
       draws_marg[, strat, sched, par] <- as.vector(mu_par + sex_par + indig_par + comorb_par)
