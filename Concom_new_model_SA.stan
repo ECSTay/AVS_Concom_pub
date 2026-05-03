@@ -1,6 +1,4 @@
-##Sensitivity analysis for a prior with longer tails and no hierachical borrowing - for MA
-
-
+//SA
 data {  
   int<lower=1> N_R;                          // number of responses
   int<lower=1> N_I;                          // number of responders
@@ -20,8 +18,8 @@ data {
 
 parameters {
   matrix[N_sched, 2] mu;                     // separate strategy log odd ratios compared to no event for each timepoint
-  #real alpha_star;                           // hierarchical mean log odds ratio of concomitant compared to separate for a single event
-  #real sigma_alpha;                          // hierarchical standard deviation
+  //real alpha_star;                           // hierarchical mean log odds ratio of concomitant compared to separate for a single event
+  //real sigma_alpha;                          // hierarchical standard deviation
   vector[N_sched] alpha;                 // temp variables for alphas
   vector[2] sigma_epsilon;                   // infant random effect standard deviation
   matrix[N_I, 2] epsilon_raw;                // temp variables epsilons
@@ -33,12 +31,12 @@ parameters {
 }
 
 transformed parameters {
-  array[N_sched] real alpha;                 // log odds ratio of concomitant compared to separate for a single event for each timepoint
+  //array[N_sched] real alpha;                 // log odds ratio of concomitant compared to separate for a single event for each timepoint
   matrix[N_I, 2] epsilon;                    // infant random effect
   array[N_R] vector[3] eta;                  // linear predictors
   array[N_R] vector[3] p;                    // probabilities transformed from linear predictors
   
-  #for(tt in 1:N_sched) alpha[tt] = alpha_star + sigma_alpha*alpha_raw[tt];
+  //for(tt in 1:N_sched) alpha[tt] = alpha_star + sigma_alpha*alpha_raw[tt];
   for(j in 1:2) epsilon[,j] = sigma_epsilon[j]*epsilon_raw[,j];
   for(r in 1:N_R){
     eta[r][1] = 0;
@@ -53,9 +51,9 @@ transformed parameters {
 }
 
 model {
-  #for(tt in 1:N_sched) target += normal_lpdf(mu[tt,] | 0, 2);
-  #target += normal_lpdf(alpha_star | 0, 10);
-  #target += inv_gamma_lpdf(sigma_alpha | 3, 1);
+  //for(tt in 1:N_sched) target += normal_lpdf(mu[tt,] | 0, 2);
+  //target += normal_lpdf(alpha_star | 0, 10);
+  //target += inv_gamma_lpdf(sigma_alpha | 3, 1);
   target += normal_lpdf(alpha | 0, 10);
   target += inv_gamma_lpdf(sigma_epsilon | 3, 1);
   for(j in 1:2) target += normal_lpdf(epsilon_raw[,j] | 0, 10);
