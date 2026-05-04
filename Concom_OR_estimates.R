@@ -42,10 +42,9 @@ c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
 
 ############################################################
 
-fnames <- c("AEFI", "MA", "impact", "fever", "local")
+fnames <- c("AEFI", "ma")
 tab <- lapply(fnames, function(fn){
   postr <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom", fn, ".rds"))
-  postr <- posterior::as_draws_matrix(postr)
   postr <- postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")]
   postr_fixed <- as.data.frame(postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")])
   postr_fixed_summary <- sapply(exp(postr_fixed), function(par) 
@@ -55,4 +54,4 @@ tab <- lapply(fnames, function(fn){
   tmp
 })
 tab <- setmergelist(tab, on = "parameter")
-write.csv(tab, "CORs.csv")
+write.csv(tab, "ConcomORs.csv")
