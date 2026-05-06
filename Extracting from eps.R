@@ -38,7 +38,7 @@ for(strat in 1:2){
              if(strat == 2 & par == 2){
                  draws_marg[, strat, sched, par] <- -Inf
                } else {
-                  draws_marg[, strat, sched, par] <- as.vector(mu_par + alpha_par + sex_par + indig_par + state_par + clinic_par + comorb_par)  
+                  draws_marg[, strat, sched, par] <- as.vector(mu_par + alpha_par)  
                  }
            }
        }
