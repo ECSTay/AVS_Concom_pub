@@ -4,9 +4,10 @@ library(ggplot2)
 library(tidyverse)
 library(stringr)
 library(posterior)
-     
+postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_SA_eps.rds")
+postr <- posterior::as_draws_matrix(fit_C$draws())    
 #load in the relevant posterior
-draws_full <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom_AEFI.rds"))
+draws_full <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
 
 
 
@@ -16,22 +17,9 @@ dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
 dat$vax_sequence[dat$vax_sequence == "2"] <- 0
 dat$vax_sequence <- as.integer(dat$vax_sequence)
 
-# N_state  = 7                    
-# N_clinic = 2
-# 
-# q <- cbind(as.integer(dat$clinic_state == "ACT"), #col1
-#            as.integer(dat$clinic_state == "NT"),  #col2
-#            as.integer(dat$clinic_state == "QLD"), #col3
-#            as.integer(dat$clinic_state == "SA"),  #col4
-#            as.integer(dat$clinic_state == "TAS"), #col5
-#            as.integer(dat$clinic_state == "VIC"), #col6
-#            as.integer(dat$clinic_state == "WA"))  #col7
-# 
-# c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
-#            as.integer(dat$clinic_type == "State Health"))
 
-
-#marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person from the population of survey responders receiving their X month schedule.
+#marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person 
+#from the population of survey responders receiving their X month schedule.
 
 draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
                     dimnames = list(draw = 1:nrow(draws_full), 
@@ -40,79 +28,86 @@ draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2),
                                     parameter = c("one", "two")))
 sex_weights <- dat[, .(mn = mean(sex)), by = schedule]
 indig_weights <- dat[, .(mn = mean(indig)), by = schedule]
-
-#state_weights
-a <- table(dat$schedule,dat$clinic_state)
-a <- a[, -2]#excludeNSW
-b <- prop.table(a, margin = 2)
-colnames(b)[c(1:7)] <- c("1", "2", "3","4","5","6","7")#ACT,NT,QLD,SA,TAS,VIC,WA
-state_weights <- as.data.table(b)
-setnames(state_weights, old = "V1", new = "schedule")
-setnames(state_weights, old = "V2", new = "state")
-state_weights$schedule <- as.integer(state_weights$schedule)
-state_weights$state <- as.integer(state_weights$state)
-setnames(state_weights, old = "N", new = "mn")
-
-#clinic_weights
-c <- table(dat$schedule,dat$clinic_type)
-c <- c[, -2]#excludeGP
-d <- prop.table(c, margin = 2)
-colnames(d)[c(1:2)] <- c("1", "2")#AHS,State
-clinic_weights <- as.data.table(d)
-setnames(clinic_weights, old = "V1", new = "schedule")
-setnames(clinic_weights, old = "V2", new = "clinic")
-clinic_weights$schedule <- as.integer(clinic_weights$schedule)
-clinic_weights$clinic <- as.integer(clinic_weights$clinic)
-setnames(clinic_weights, old = "N", new = "mn")
-
+state_weights <- data.table(mn = as.vector(prop.table(table(dat$schedule,dat$clinic_state), margin = 1)[,-2]),
+                            schedule = rep(1:4, 7),
+                            state = rep(1:7, each = 4))
+clinic_weights <- data.table(mn = as.vector(prop.table(table(dat$schedule,dat$clinic_type), margin = 1)[,-2]),
+                             schedule = rep(1:4, 2),
+                             state = rep(1:2, each = 4))
 comorb_weights <- dat[, .(mn = mean(pmh)), by = schedule]
 
-as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", state, ",", strat, "]")]))
+# sex_weights <- dat[, .(mn = mean(sex))]
+# indig_weights <- dat[, .(mn = mean(indig))]
+# state_weights <- data.table(mn = as.vector(prop.table(table(dat$clinic_state))[-2]),
+#                             state = 1:7)
+# clinic_weights <- data.table(mn = as.vector(prop.table(table(dat$clinic_type))[-2]),
+#                              state = 1:2)
+# comorb_weights <- dat[, .(mn = mean(pmh))]
+
 
 for(strat in 1:2){
   for(sched in 1:4){
-    for(state in 1:7){
-      for(clinic in 1:2){
-        for(par in 1:2){
-          sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
-          indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
-          state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", state, ",", strat, "]")]))
-          clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws_full[,paste0("tau[", clinic, ",", strat, "]")]))
-          comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
-          mu_par <- draws_full[,paste0("mu[", strat, ",", sched, ",", par, "]")]
-          draws_marg[, strat, sched, par] <- as.vector(mu_par + sex_par + indig_par + state_par + clinic_par + comorb_par)####
-        } 
+    for(par in 1:2){
+      mu_par <- draws_full[,paste0("mu[", sched, ",", par, "]")]
+      alpha_par <- (strat == 2)*draws_full[,paste0("alpha[", sched, "]")]
+      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+      state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", 1:7, ",", par, "]")]))
+      clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws_full[,paste0("tau[", 1:2, ",", par, "]")]))
+      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
+      if(strat == 2 & par == 2){
+        draws_marg[, strat, sched, par] <- -Inf
+      } else {
+        draws_marg[, strat, sched, par] <- as.vector(mu_par + alpha_par + sex_par + indig_par + state_par + clinic_par + comorb_par)  
       }
     }
   }
 }
 
-dat_vis <- data.table(x = plogis(as.vector(draws_marg)),
+dat_vis <- data.table(x = as.vector(draws_marg),
                       samp = rep(1:8000,2*4*2),
-                      strategy = rep(rep(c("Concomitant", "Separate"), each = 8000), 4*2),
+                      strategy = rep(rep(c("Separate", "Concomitant"), each = 8000), 4*2),
                       schedule = rep(rep(c("2 months", "4 months", "6 months", "12 months"), each = 8000*2), 2),
-                      Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
-dat_vis <- dat_vis[!(strategy == "Concomitant" & Parameter == "P(k = 2)")]
-
+                      Parameter = rep(c("eta_1", "eta_2"), each = 8000*2*4))
+                      
+                      #Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
 dat_vis <- dcast.data.table(dat_vis, samp + strategy + schedule ~ Parameter, value.var = 'x')
-#dat_vis[, 'P(k >= 1)' := 'P(k = 1)' + 'P(k = 2)']
-dat_vis$"P(k >= 1)" <- dat_vis$'P(k = 1)' + dat_vis$'P(k = 2)'
-dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = c('P(k = 1)', 'P(k = 2)', 'P(k >= 1)'), variable.name = 'Parameter', value.name = 'x')
-dat_vis <- dat_vis[!(strategy == 'Concomitant' & Parameter %in% c('P(k = 2)', 'P(k >= 1)'))]
-dat_vis <- dat_vis[!(strategy == 'Separate' & Parameter %in% c('P(k = 1)', 'P(k = 2)'))]
+dat_vis[, `:=`(
+  p1 = exp(eta_1)/(1 + exp(eta_1) + exp(eta_2)),
+  p2 = exp(eta_2)/(1 + exp(eta_1) + exp(eta_2))
+)]
+dat_vis[, p12 := p1 + p2]
+dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = "p12", variable.name = 'Parameter', value.name = 'x')
+#dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = c('P(k = 1)', 'P(k = 2)', 'P(k >= 1)'), variable.name = 'Parameter', value.name = 'x')
+#dat_vis <- dat_vis[!(strategy == 'Concomitant' & Parameter %in% c('P(k = 2)', 'P(k >= 1)'))]
+#dat_vis <- dat_vis[!(strategy == 'Separate' & Parameter %in% c('P(k = 1)', 'P(k = 2)'))]
 
-#contrasts - separate strategy 2 events postr - concomitant 1 event postr then summarise as another column in Tabble 3
+dat_vis[strategy == "Separate", mean(x), by = .(schedule, Parameter)]
+dat_vis[strategy == "Concomitant", mean(x), by = .(schedule, Parameter)]
+
+#contrasts - separate strategy at  least one event postr - concomitant 1 event postr 
+#then summarise as another column in Tabble 3
 
 #AEFI
-ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+ggplot(dat_vis, aes(x = x, colour = strategy)) +
   facet_grid(strategy~forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")) +
   geom_density() +
   xlab("Probability") +
   ylab("Density") +
   labs(color = NULL) +
   theme(legend.position = "bottom") +
-  scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k >= 1)" = "#009E73"),
+  scale_colour_manual(values = c("Concomitant" = "#D55E00", "Separate" = "#009E73"),
                       labels = c("One report of AEFI", "At least one report of AEFI"))
+
+# ggplot(dat_vis, aes(x = x, colour = Parameter)) +
+#   facet_grid(strategy~forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")) +
+#   geom_density() +
+#   xlab("Probability") +
+#   ylab("Density") +
+#   labs(color = NULL) +
+#   theme(legend.position = "bottom") +
+#   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k >= 1)" = "#009E73"),
+#                       labels = c("One report of AEFI", "At least one report of AEFI"))
 
 ggsave("AEFI_3.png", dpi = 400, width = 6, height = 5, units = "in")
 
@@ -155,6 +150,16 @@ print(results2)
 
 
 
-
+sched <- 3 # 6 months
+par <- 2 
+strat <- 1
+      mu_par <- draws_full[,paste0("mu[", sched, ",", par, "]")]
+       alpha_par <- (strat == 2)*draws_full[,paste0("alpha[", sched, "]")]
+       sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+       indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+       state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", 1:7, ",", par, "]")]))
+       clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws_full[,paste0("tau[", 1:2, ",", par, "]")]))
+       comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
+ summary(mu_par)
 
 
