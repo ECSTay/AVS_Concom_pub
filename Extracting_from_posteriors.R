@@ -6,6 +6,7 @@ library(stringr)
 library(posterior)
 postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_SA_eps.rds")
 postr <- posterior::as_draws_matrix(fit_C$draws())    
+postr <- posterior::as_draws_matrix(postr)    
 #load in the relevant posterior
 draws_full <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
 
@@ -77,6 +78,7 @@ dat_vis[, `:=`(
   p2 = exp(eta_2)/(1 + exp(eta_1) + exp(eta_2))
 )]
 dat_vis[, p12 := p1 + p2]
+dat_vis[,.(mean(p1),mean(p2)), by = .(strategy, schedule)][order(schedule)]
 dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = "p12", variable.name = 'Parameter', value.name = 'x')
 #dat_vis <- melt.data.table(dat_vis, id.vars = c('samp', 'strategy', 'schedule'), measure.vars = c('P(k = 1)', 'P(k = 2)', 'P(k >= 1)'), variable.name = 'Parameter', value.name = 'x')
 #dat_vis <- dat_vis[!(strategy == 'Concomitant' & Parameter %in% c('P(k = 2)', 'P(k >= 1)'))]

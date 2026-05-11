@@ -9,6 +9,9 @@ library(bayesplot)
 #load in data
 dat <- fread(file = "C:/Users/ETay/Documents/NIP_MenB_dat.csv")
 dat$res <- as.integer(factor(dat$uid_person, levels = unique(dat$uid_person)))
+table(dat$vax_sequence)#1 = "Concomitant vaccination",2 = "Separate"
+# 1    2 
+# 8738 2208 
 dat$vax_sequence[dat$vax_sequence == "2"] <- 0
 dat$vax_sequence <- as.integer(dat$vax_sequence)
 N_R <- dat[,.N]                                            ## number of responses

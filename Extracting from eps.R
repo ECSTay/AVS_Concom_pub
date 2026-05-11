@@ -6,6 +6,9 @@ library(tidyverse)
 library(stringr)
 library(posterior)
 postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_SA_eps.rds")
+postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_alpha_hier.rds")
+postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_basic.rds")
+postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_mus.rds")
 postr <- posterior::as_draws_matrix(postr) 
 
 draws_full <- postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")]
@@ -38,6 +41,7 @@ for(strat in 1:2){
              if(strat == 2 & par == 2){
                  draws_marg[, strat, sched, par] <- -Inf
                } else {
+                  #draws_marg[, strat, sched, par] <- as.vector(mu_par)  
                   draws_marg[, strat, sched, par] <- as.vector(mu_par + alpha_par)  
                  }
            }
