@@ -6,11 +6,13 @@ library(stringr)
 library(posterior)
 postr <- readRDS(file = "C:/Users/ETay/Documents/Concom_AEFI_posterior_SA_eps.rds")
 postr <- posterior::as_draws_matrix(fit_C$draws())    
-postr <- posterior::as_draws_matrix(postr)    
+postr <- posterior::as_draws_matrix(postr) 
+
+
 #load in the relevant posterior
-draws_full <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
+draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
 
-
+dat_C <- readRDS("C:/Users/ETay/Documents/dat_C_AEFI.rds")
 
 #load in dat
 dat <- fread(file = "C:/Users/ETay/Documents/NIP_MenB_dat.csv")

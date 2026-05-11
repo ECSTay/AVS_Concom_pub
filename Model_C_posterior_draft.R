@@ -45,9 +45,9 @@ c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
 
 z <- dat$pmh                    ## comorbidity - 0 - None, 1 - at least one
 
-#y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.49, p(2) = 0.03
+y <- dat$any_event + 1           ## outcome - 0,1,2 p(1) = 0.39, p(2) = 0.03
 #y <- dat$impact + 1              ## outcome - 0,1,2 p(1) = 0.04, p(2) = 0.0005
-y <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
+#y <- dat$ma + 1                  ## outcome - 0,1,2 p(1) = 0.02
 #y <- dat$local + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.02
 #y <- dat$fever + 1               ## outcome - 0,1,2 p(1) = 0.27, p(2) = 0.01
 
