@@ -3,9 +3,13 @@
 library(ggplot2)
 library(ggdist)
 library(distributional)
+library(data.table)
 
 ## draws is the posterior distribution
+draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
 ## dat is the stan data set you used (it should be a list with N_R, N_I, N_sched, etc.)
+dat <- readRDS("C:/Users/ETay/Documents/dat_C_AEFI.rds")
+
 start_time <- Sys.time()
 posterior_predictive <- function(draws, dat){
   ndraws <- nrow(draws)
@@ -65,7 +69,8 @@ posterior_predictive <- function(draws, dat){
     stat_pointinterval(.width = c(.50, .95, 1)) +
     scale_fill_brewer(breaks = c(1, .95, .50),name = "Proportion") +
     geom_point(aes(x = y_mean), colour = "red", shape = 17) +
-    xlab("Probability")
+    xlab("Probability") +
+    ylab("Number of reported adverse events")
   return(p)
 }
 
