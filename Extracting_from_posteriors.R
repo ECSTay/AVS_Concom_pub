@@ -24,8 +24,8 @@ dat$vax_sequence <- as.integer(dat$vax_sequence)
 #marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person 
 #from the population of survey responders receiving their X month schedule.
 
-draws_marg <- array(NA, dim = c(nrow(draws_full), 2, 4, 2), 
-                    dimnames = list(draw = 1:nrow(draws_full), 
+draws_marg <- array(NA, dim = c(nrow(draws), 2, 4, 2), 
+                    dimnames = list(draw = 1:nrow(draws), 
                                     strategy = c("concom", "separate"), 
                                     schedule = c("2 months", "4 months", "6 months", "12 months"), 
                                     parameter = c("one", "two")))
@@ -39,25 +39,17 @@ clinic_weights <- data.table(mn = as.vector(prop.table(table(dat$schedule,dat$cl
                              state = rep(1:2, each = 4))
 comorb_weights <- dat[, .(mn = mean(pmh)), by = schedule]
 
-# sex_weights <- dat[, .(mn = mean(sex))]
-# indig_weights <- dat[, .(mn = mean(indig))]
-# state_weights <- data.table(mn = as.vector(prop.table(table(dat$clinic_state))[-2]),
-#                             state = 1:7)
-# clinic_weights <- data.table(mn = as.vector(prop.table(table(dat$clinic_type))[-2]),
-#                              state = 1:2)
-# comorb_weights <- dat[, .(mn = mean(pmh))]
-
 
 for(strat in 1:2){
   for(sched in 1:4){
     for(par in 1:2){
-      mu_par <- draws_full[,paste0("mu[", sched, ",", par, "]")]
-      alpha_par <- (strat == 2)*draws_full[,paste0("alpha[", sched, "]")]
-      sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
-      indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
-      state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", 1:7, ",", par, "]")]))
-      clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws_full[,paste0("tau[", 1:2, ",", par, "]")]))
-      comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
+      mu_par <- draws[,paste0("mu[", sched, ",", par, "]")]
+      alpha_par <- (strat == 2)*draws[,paste0("alpha[", sched, "]")]
+      sex_par <- draws[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+      indig_par <- draws[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+      state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws[,paste0("rho[", 1:7, ",", par, "]")]))
+      clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws[,paste0("tau[", 1:2, ",", par, "]")]))
+      comorb_par <- draws[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
       if(strat == 2 & par == 2){
         draws_marg[, strat, sched, par] <- -Inf
       } else {
@@ -75,9 +67,20 @@ dat_vis <- data.table(x = as.vector(draws_marg),
                       
                       #Parameter = rep(c("P(k = 1)", "P(k = 2)"), each = 8000*2*4))
 dat_vis <- dcast.data.table(dat_vis, samp + strategy + schedule ~ Parameter, value.var = 'x')
+
+
+eta <- array(NA, dim = c(ndraws, 3))
+eta[,1] <- 0
+eta[,2] <- mu1 + dat$s[r]*alpha + epsilon1 + dat$w[r]*beta1 + dat$x[r]*gamma1 + as.vector(dat$q[r,]%*%t(rho1)) + as.vector(dat$c[r,]%*%t(tau1)) + dat$z[r]*delta1
+if(dat$s[r] == 0){
+  eta[,3] <- mu2 + epsilon2 + dat$w[r]*beta2 + dat$x[r]*gamma2 + as.vector(dat$q[r,]%*%t(rho2)) + as.vector(dat$c[r,]%*%t(tau2)) + dat$z[r]*delta2
+} else {
+  eta[,3] <- - Inf
+}
+
 dat_vis[, `:=`(
-  p1 = exp(eta_1)/(1 + exp(eta_1) + exp(eta_2)),
-  p2 = exp(eta_2)/(1 + exp(eta_1) + exp(eta_2))
+  p1 = exp(eta[,2] - apply(eta, 1, function(x) max(x) + log(sum(exp(x - max(x)))))),
+  p2 = exp(eta[,3] - apply(eta, 1, function(x) max(x) + log(sum(exp(x - max(x))))))
 )]
 dat_vis[, p12 := p1 + p2]
 dat_vis[,.(mean(p1),mean(p2)), by = .(strategy, schedule)][order(schedule)]
@@ -157,13 +160,13 @@ print(results2)
 sched <- 3 # 6 months
 par <- 2 
 strat <- 1
-      mu_par <- draws_full[,paste0("mu[", sched, ",", par, "]")]
-       alpha_par <- (strat == 2)*draws_full[,paste0("alpha[", sched, "]")]
-       sex_par <- draws_full[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
-       indig_par <- draws_full[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
-       state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws_full[,paste0("rho[", 1:7, ",", par, "]")]))
-       clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws_full[,paste0("tau[", 1:2, ",", par, "]")]))
-       comorb_par <- draws_full[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
+      mu_par <- draws[,paste0("mu[", sched, ",", par, "]")]
+       alpha_par <- (strat == 2)*draws[,paste0("alpha[", sched, "]")]
+       sex_par <- draws[,paste0("beta[", par, "]")]*sex_weights[schedule == sched]$mn
+       indig_par <- draws[,paste0("gamma[", par, "]")]*indig_weights[schedule == sched]$mn
+       state_par <- as.vector(state_weights[schedule==sched]$mn%*%t(draws[,paste0("rho[", 1:7, ",", par, "]")]))
+       clinic_par <- as.vector(clinic_weights[schedule==sched]$mn%*%t(draws[,paste0("tau[", 1:2, ",", par, "]")]))
+       comorb_par <- draws[,paste0("delta[", par, "]")]*comorb_weights[schedule == sched]$mn
  summary(mu_par)
 
 
