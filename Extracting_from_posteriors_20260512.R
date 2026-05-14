@@ -9,6 +9,7 @@ library(posterior)
 
 #load in the relevant posterior
 draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
+#draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_ma_SA.rds")# SA with N(0),10) priors
 
 #load in dat
 
