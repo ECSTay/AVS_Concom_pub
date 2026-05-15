@@ -41,10 +41,11 @@ c <- cbind(as.integer(dat$clinic_type == "Aboriginal Health Service"),
            as.integer(dat$clinic_type == "State Health"))
 
 ############################################################
+##function needed to transforms the parameter to derive the ORs....
 
-fnames <- c("AEFI", "ma")
+fnames <- c("AEFI", "ma", "impact", "fever", "local")
 tab <- lapply(fnames, function(fn){
-  postr <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom", fn, ".rds"))
+  postr <- readRDS(file = paste0("C:/Users/ETay/Documents/postr_concom_", fn, ".rds"))
   postr <- postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")]
   postr_fixed <- as.data.frame(postr[,str_detect(colnames(postr), "mu|alpha|beta|delta|rho|tau|gamma|sigma")])
   postr_fixed_summary <- sapply(exp(postr_fixed), function(par) 
