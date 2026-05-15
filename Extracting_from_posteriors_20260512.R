@@ -16,7 +16,7 @@ draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_AEFI.rds")
 dat <- readRDS("C:/Users/ETay/Documents/dat_C_AEFI.rds")
 #marginalise - using option 2.	The event probability (e.g., one/two MAs) for an average person 
 #from the population of survey responders receiving their X month schedule.
-extracting_posteriors <- function(draws, dat){
+#extracting_posteriors <- function(draws, dat){
   ndraws <- nrow(draws)
   p_post <- array(data = NA_integer_, dim = c(ndraws, dat$N_R))
   for(r in 1:dat$N_R){
@@ -68,9 +68,20 @@ extracting_posteriors <- function(draws, dat){
                                    mean(dat$y[dat$s == 1 & dat$t == 2] == 1), mean(dat$y[dat$s == 1 & dat$t == 2] == 2), mean(dat$y[dat$s == 1 & dat$t == 2] == 3),
                                    mean(dat$y[dat$s == 1 & dat$t == 3] == 1), mean(dat$y[dat$s == 1 & dat$t == 3] == 2), mean(dat$y[dat$s == 1 & dat$t == 3] == 3),
                                    mean(dat$y[dat$s == 1 & dat$t == 4] == 1), mean(dat$y[dat$s == 1 & dat$t == 4] == 2), mean(dat$y[dat$s == 1 & dat$t == 4] == 3)))
+  
   dat_raw <- dat_raw[!(s == "Concomitant" & Outcome == "2")]
   dat_vis <- merge(dat_vis,dat_raw,by = c("s","t","Outcome"))
   dat_vis
+  
+  quantile1 <- vector()
+  for(i in 1:ndraws){
+  quantile1[i] <- quantile(dat_vis$value[[i]], prob = 0.025)
+  }
+  
+  
+  
+  
+  
   p <- ggplot(dat_vis, aes(y = Outcome, xdist = dist_sample(value))) +
     facet_grid(t ~ s) +
     stat_histinterval(aes(fill = after_stat(level)), .width = c(.50, .95, 1)) +
@@ -80,7 +91,7 @@ extracting_posteriors <- function(draws, dat){
     xlab("Probability") +
     ylab("Number of reported adverse events")
   return(p)
-}
+
 
 ########################################################################
 
