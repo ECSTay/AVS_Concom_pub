@@ -167,15 +167,6 @@ ggplot(dat_vis, aes(x = x, colour = strategy)) +
   scale_colour_manual(values = c("Concomitant" = "#D55E00", "Separate" = "#009E73"),
                       labels = c("One report of AEFI", "At least one report of AEFI"))
 
-# ggplot(dat_vis, aes(x = x, colour = Parameter)) +
-#   facet_grid(strategy~forcats::fct_relevel(schedule, "2 months", "4 months", "6 months", "12 months")) +
-#   geom_density() +
-#   xlab("Probability") +
-#   ylab("Density") +
-#   labs(color = NULL) +
-#   theme(legend.position = "bottom") +
-#   scale_colour_manual(values = c("P(k = 1)" = "#D55E00", "P(k >= 1)" = "#009E73"),
-#                       labels = c("One report of AEFI", "At least one report of AEFI"))
 
 ggsave("AEFI_3.png", dpi = 400, width = 6, height = 5, units = "in")
 
