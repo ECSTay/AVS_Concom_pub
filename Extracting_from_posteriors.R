@@ -8,7 +8,7 @@ library(stringr)
 library(posterior)
 
 #load in the relevant posterior
-draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_impact.rds")
+draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_fever.rds")
 #draws <- readRDS(file ="C:/Users/ETay/Documents/postr_concom_ma_SA.rds")# SA with N(0),10) priors
 
 #load in the STAN dat
@@ -89,7 +89,7 @@ ggplot(dat_vis_cont, aes(x = contrast)) +
     xlab("Change in Probability") +
     ylab("Density")
 
-ggplot2::ggsave("AEFI_impact.png", dpi = 400, width = 8, height = 4, units = "in")
+ggplot2::ggsave("AEFI_fever.png", dpi = 400, width = 8, height = 4, units = "in")
   
 dat_vis_cont[, summ_f(contrast), by = t]
 
